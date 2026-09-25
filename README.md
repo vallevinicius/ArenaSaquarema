@@ -35,13 +35,13 @@ Pré-requisitos: Node.js 20.19+ e Docker (ou um MySQL 8 próprio).
 # 1. Banco
 docker compose up -d
 
-# 2. Dependências + Prisma Client
-npm run setup
-
-# 3. Variáveis de ambiente
+# 2. Variáveis de ambiente (antes do setup: o Prisma lê DATABASE_URL daqui)
 cp backend/.env.example backend/.env
 #   - JWT_SECRET: node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"
 #   - SEED_ADMIN_PASSWORD: senha do primeiro admin (mín. 10 caracteres)
+
+# 3. Dependências + Prisma Client
+npm run setup
 
 # 4. Primeira migration (gera backend/prisma/migrations — faça commit dela)
 npm run prisma:migrate --prefix backend -- --name init
