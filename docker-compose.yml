@@ -1,0 +1,25 @@
+# MySQL 8 para desenvolvimento local.  Uso: docker compose up -d
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: arena-saquarema-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root_dev_pwd}
+      MYSQL_DATABASE: arena_saquarema
+      MYSQL_USER: arena
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-arena_dev_pwd}
+      TZ: UTC
+    command: ['--character-set-server=utf8mb4', '--collation-server=utf8mb4_unicode_ci', '--default-time-zone=+00:00']
+    ports:
+      - '127.0.0.1:3306:3306' # só localhost: não expõe o banco na rede
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./docker/mysql-init.sql:/docker-entrypoint-initdb.d/01-grants.sql:ro
+    healthcheck:
+      test: ['CMD', 'mysqladmin', 'ping', '-h', '127.0.0.1']
+      interval: 5s
+      retries: 20
+
+volumes:
+  mysql_data:
