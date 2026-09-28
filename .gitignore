@@ -1,7 +1,11 @@
 node_modules
-dist
+.next/
+out/
 .env
+.env*.local
 *.log
 .DS_Store
-backend/src/generated
-backend/openapi.json
+*.tsbuildinfo
+next-env.d.ts
+server/generated
+openapi.json

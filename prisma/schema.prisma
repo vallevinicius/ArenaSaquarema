@@ -1,0 +1,199 @@
+// Arena Saquarema — controle de bar, estoque e day use
+// Prisma 7 + MySQL (driver adapter mariadb, compatível com MySQL 8)
+
+generator client {
+  provider            = "prisma-client"
+  output              = "../server/generated/prisma"
+  moduleFormat        = "esm"
+  importFileExtension = ""
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+enum Role {
+  ADMIN
+  OPERADOR
+}
+
+enum ProductCategory {
+  CERVEJA
+  REFRIGERANTE
+  AGUA
+  ISOTONICO
+  SUCO
+  DRINK
+  DESTILADO
+  PETISCO
+  OUTROS
+}
+
+enum StockMovementType {
+  ENTRADA // compra/reposição
+  SAIDA // perda, quebra, consumo interno
+  AJUSTE // inventário (delta pode ser + ou -)
+  VENDA // baixa automática ao lançar item em comanda
+  ESTORNO // devolução ao remover item de comanda aberta ou cancelar comanda
+}
+
+enum TabStatus {
+  ABERTA
+  FECHADA
+  CANCELADA
+}
+
+enum TabItemType {
+  PRODUTO
+  DAY_USE
+}
+
+enum PaymentMethod {
+  DINHEIRO
+  PIX
+  CARTAO_DEBITO
+  CARTAO_CREDITO
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  name         String   @db.VarChar(120)
+  email        String   @unique @db.VarChar(160)
+  passwordHash String   @db.VarChar(100)
+  role         Role     @default(OPERADOR)
+  active       Boolean  @default(true)
+  // Incrementado em troca de senha/desativação: invalida JWTs emitidos antes.
+  tokenVersion Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  tabsOpened     Tab[]           @relation("TabOpenedBy")
+  tabsClosed     Tab[]           @relation("TabClosedBy")
+  tabItems       TabItem[]
+  stockMovements StockMovement[]
+
+  @@map("users")
+}
+
+model Customer {
+  id        Int      @id @default(autoincrement())
+  name      String   @db.VarChar(120)
+  phone     String?  @db.VarChar(20)
+  cpf       String?  @unique @db.Char(11)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tabs Tab[]
+
+  @@index([name])
+  @@index([phone])
+  @@map("customers")
+}
+
+model Product {
+  id         Int             @id @default(autoincrement())
+  name       String          @unique @db.VarChar(120)
+  category   ProductCategory
+  price      Decimal         @db.Decimal(10, 2)
+  // false = preparado na hora (drink, porção): não controla estoque
+  trackStock Boolean         @default(true)
+  stock      Int             @default(0)
+  minStock   Int             @default(0)
+  active     Boolean         @default(true)
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+
+  tabItems       TabItem[]
+  stockMovements StockMovement[]
+
+  @@index([category, active])
+  @@map("products")
+}
+
+model DayUsePlan {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique @db.VarChar(120)
+  description String?  @db.VarChar(255)
+  price       Decimal  @db.Decimal(10, 2)
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tabItems TabItem[]
+
+  @@map("day_use_plans")
+}
+
+model Tab {
+  id             Int            @id @default(autoincrement())
+  customerId     Int
+  // = customerId enquanto ABERTA, NULL depois. O índice único garante no banco
+  // (inclusive sob concorrência) no máximo 1 comanda aberta por cliente.
+  openCustomerId Int?           @unique
+  status         TabStatus      @default(ABERTA)
+  total          Decimal        @default(0) @db.Decimal(10, 2)
+  paymentMethod  PaymentMethod?
+  notes          String?        @db.VarChar(255)
+  openedById     Int
+  closedById     Int?
+  openedAt       DateTime       @default(now())
+  closedAt       DateTime?
+
+  customer Customer  @relation(fields: [customerId], references: [id])
+  openedBy User      @relation("TabOpenedBy", fields: [openedById], references: [id])
+  closedBy User?     @relation("TabClosedBy", fields: [closedById], references: [id])
+  items    TabItem[]
+
+  @@index([status, openedAt])
+  @@index([closedAt])
+  @@index([customerId])
+  @@map("tabs")
+}
+
+model TabItem {
+  id           Int         @id @default(autoincrement())
+  tabId        Int
+  type         TabItemType
+  productId    Int?
+  dayUsePlanId Int?
+  // Snapshot da descrição e preço no momento do lançamento: alterar preço
+  // do produto não pode alterar comandas já lançadas.
+  description  String      @db.VarChar(160)
+  quantity     Int
+  unitPrice    Decimal     @db.Decimal(10, 2)
+  subtotal     Decimal     @db.Decimal(10, 2)
+  // Data de uso do day use (apenas type = DAY_USE)
+  usageDate    DateTime?   @db.Date
+  createdById  Int
+  createdAt    DateTime    @default(now())
+
+  tab        Tab         @relation(fields: [tabId], references: [id], onDelete: Cascade)
+  product    Product?    @relation(fields: [productId], references: [id])
+  dayUsePlan DayUsePlan? @relation(fields: [dayUsePlanId], references: [id])
+  createdBy  User        @relation(fields: [createdById], references: [id])
+
+  @@index([tabId])
+  @@index([type, usageDate])
+  @@map("tab_items")
+}
+
+model StockMovement {
+  id        Int               @id @default(autoincrement())
+  productId Int
+  type      StockMovementType
+  // Delta com sinal aplicado ao estoque (+ entra, - sai)
+  quantity  Int
+  // Estoque resultante após o movimento (auditoria)
+  balance   Int
+  reason    String?           @db.VarChar(255)
+  userId    Int
+  tabId     Int?
+  createdAt DateTime          @default(now())
+
+  product Product @relation(fields: [productId], references: [id])
+  user    User    @relation(fields: [userId], references: [id])
+
+  @@index([productId, createdAt])
+  @@index([type, createdAt])
+  @@map("stock_movements")
+}
