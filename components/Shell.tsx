@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useState, type ReactNode } from 'react';
 import type { Role } from '@/lib/types';
 import { useAuth } from '@/hooks/useAuth';
+import { IconBeer, IconSun } from '@/components/icons';
 
 export function Logo({ light = true }: { light?: boolean }) {
   return (
@@ -34,9 +35,9 @@ const NAV: Item[] = [
   { to: '/dashboard', label: 'Dashboard', icon: icon('M4 20V10M10 20V4M16 20v-7M22 20H2'), role: 'ADMIN' },
   { to: '/comandas', label: 'Comandas', icon: icon('M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6') },
   { to: '/clientes', label: 'Clientes', icon: icon('M16 19v-1a4 4 0 00-8 0v1M12 11a3 3 0 100-6 3 3 0 000 6z') },
-  { to: '/produtos', label: 'Bar / Produtos', icon: icon('M8 2h8l-1 7a3 3 0 01-6 0zM12 12v8M8 22h8') },
+  { to: '/produtos', label: 'Bar / Produtos', icon: <IconBeer /> },
   { to: '/estoque', label: 'Estoque', icon: icon('M3 7l9-4 9 4-9 4zM3 7v10l9 4 9-4V7M12 11v10'), role: 'ADMIN' },
-  { to: '/day-use', label: 'Day Use', icon: icon('M12 3v2M12 19v2M5 12H3M21 12h-2M6 6l1.5 1.5M16.5 16.5L18 18M6 18l1.5-1.5M16.5 7.5L18 6M12 8a4 4 0 100 8 4 4 0 000-8z'), role: 'ADMIN' },
+  { to: '/day-use', label: 'Day Use', icon: <IconSun /> },
   { to: '/usuarios', label: 'Usuários', icon: icon('M12 15a7 7 0 00-7 6h14a7 7 0 00-7-6zM12 12a4 4 0 100-8 4 4 0 000 8z'), role: 'ADMIN' },
 ];
 

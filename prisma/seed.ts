@@ -62,7 +62,7 @@ async function main() {
 
   const plans: Array<[string, string, string]> = [
     ['Day Use Avulso', 'Acesso às quadras de futevôlei durante o dia', '40.00'],
-    ['Day Use + Aula', 'Day use com 1 aula de futevôlei com professor', '70.00'],
+    ['Day Use + Churrasco', 'Day use com churrasco', '70.00'],
     ['Day Use Infantil', 'Até 12 anos', '20.00'],
   ];
   for (const [name, description, price] of plans) {

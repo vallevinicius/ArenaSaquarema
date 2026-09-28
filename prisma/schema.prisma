@@ -55,9 +55,15 @@ enum PaymentMethod {
   CARTAO_CREDITO
 }
 
+enum DayUseSessionStatus {
+  ABERTO
+  FECHADO
+}
+
 model User {
   id           Int      @id @default(autoincrement())
-  name         String   @db.VarChar(120)
+  // Único: também serve como identificador de login alternativo ao e-mail.
+  name         String   @unique @db.VarChar(120)
   email        String   @unique @db.VarChar(160)
   passwordHash String   @db.VarChar(100)
   role         Role     @default(OPERADOR)
@@ -67,10 +73,13 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  tabsOpened     Tab[]           @relation("TabOpenedBy")
-  tabsClosed     Tab[]           @relation("TabClosedBy")
-  tabItems       TabItem[]
-  stockMovements StockMovement[]
+  tabsOpened           Tab[]           @relation("TabOpenedBy")
+  tabsClosed           Tab[]           @relation("TabClosedBy")
+  tabItems             TabItem[]
+  stockMovements       StockMovement[]
+  dayUseSessionsOpened DayUseSession[] @relation("DayUseSessionOpenedBy")
+  dayUseSessionsClosed DayUseSession[] @relation("DayUseSessionClosedBy")
+  dayUseEntries        DayUseEntry[]
 
   @@map("users")
 }
@@ -120,8 +129,50 @@ model DayUsePlan {
   updatedAt   DateTime @updatedAt
 
   tabItems TabItem[]
+  entries  DayUseEntry[]
 
   @@map("day_use_plans")
+}
+
+// Caixa do dia: abre no início do expediente, recebe os check-ins de quem pagou o
+// day use e fecha no fim, travando novos lançamentos e consolidando o total por dia.
+model DayUseSession {
+  id         Int                 @id @default(autoincrement())
+  date       DateTime            @unique @db.Date
+  status     DayUseSessionStatus @default(ABERTO)
+  openedById Int
+  closedById Int?
+  openedAt   DateTime            @default(now())
+  closedAt   DateTime?
+
+  openedBy User          @relation("DayUseSessionOpenedBy", fields: [openedById], references: [id])
+  closedBy User?         @relation("DayUseSessionClosedBy", fields: [closedById], references: [id])
+  entries  DayUseEntry[]
+
+  @@map("day_use_sessions")
+}
+
+// Check-in de quem pagou o day use no caixa do dia: sem cliente/comanda, só o
+// necessário pro caixa (nome de quem pagou, plano, forma de pagamento).
+model DayUseEntry {
+  id            Int           @id @default(autoincrement())
+  sessionId     Int
+  dayUsePlanId  Int
+  personName    String        @db.VarChar(120)
+  quantity      Int           @default(1)
+  // Snapshot do preço do plano no momento do check-in.
+  unitPrice     Decimal       @db.Decimal(10, 2)
+  subtotal      Decimal       @db.Decimal(10, 2)
+  paymentMethod PaymentMethod
+  createdById   Int
+  createdAt     DateTime      @default(now())
+
+  session    DayUseSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  dayUsePlan DayUsePlan    @relation(fields: [dayUsePlanId], references: [id])
+  createdBy  User          @relation(fields: [createdById], references: [id])
+
+  @@index([sessionId])
+  @@map("day_use_entries")
 }
 
 model Tab {

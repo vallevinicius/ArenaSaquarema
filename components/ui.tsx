@@ -2,6 +2,7 @@
 
 import type { InputHTMLAttributes, ReactNode, SelectHTMLAttributes } from 'react';
 import { ApiError } from '@/lib/api-client';
+import { IconWarning } from '@/components/icons';
 
 export function Spinner({ label = 'Carregando...' }: { label?: string }) {
   return (
@@ -64,8 +65,9 @@ export function Field({ label, error, hint, id, ...props }: FieldProps) {
       />
       {hint && !error?.length && <p className="mt-1 text-xs text-slate-500">{hint}</p>}
       {!!error?.length && (
-        <p id={errId} className="mt-1 text-xs font-medium text-red-700">
-          ⚠ {error.join(', ')}
+        <p id={errId} className="mt-1 flex items-center gap-1 text-xs font-medium text-red-700">
+          <IconWarning className="size-3.5" />
+          {error.join(', ')}
         </p>
       )}
     </div>
@@ -91,8 +93,9 @@ export function FormError({ error }: { error: unknown }) {
   if (!error) return null;
   const msg = error instanceof ApiError ? error.message : 'Erro inesperado';
   return (
-    <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm font-medium text-red-700">
-      ⚠ {msg}
+    <p role="alert" className="flex items-center gap-2 rounded-lg bg-red-50 px-3 py-2 text-sm font-medium text-red-700">
+      <IconWarning className="size-4 shrink-0" />
+      {msg}
     </p>
   );
 }

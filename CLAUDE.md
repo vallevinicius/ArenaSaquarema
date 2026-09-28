@@ -29,6 +29,7 @@ App único Next.js 16 (App Router), front e API no mesmo processo/porta, no mesm
 - Dinheiro: `Decimal(10,2)` no banco, string `"12.50"` na API (`money()`), `MoneyInput` na entrada.
 - Estoque só muda via `applyDelta(tx, ...)` em `stock.service.ts`, dentro de transação.
 - Operações em comanda: sempre `lockOpenTab(tx, id)` primeiro.
+- Operações no caixa de day use: sempre `lockOpenSession(tx, id)` primeiro (mesmo padrão do `lockOpenTab`).
 - Datas: banco em UTC; "hoje" usa `America/Sao_Paulo` (`server/lib/format.ts`).
 - Mensagens em pt-BR. Códigos de erro em `UPPER_SNAKE` (`INSUFFICIENT_STOCK`, `TAB_NOT_OPEN`, `CUSTOMER_HAS_OPEN_TAB`...).
 
@@ -38,6 +39,7 @@ App único Next.js 16 (App Router), front e API no mesmo processo/porta, no mesm
 - `products`: GET, GET :id, POST*, PATCH :id*
 - `stock/movements`: GET*, POST* (ENTRADA | SAIDA | AJUSTE)
 - `day-use-plans`: GET, POST*, PATCH :id*
+- `day-use-sessions`: GET, GET current, GET :id, POST (abre o caixa do dia), POST :id/entries (check-in de pagamento), DELETE :id/entries/:entryId, POST :id/close
 - `tabs`: GET, GET :id, POST, POST :id/items, DELETE :id/items/:itemId, POST :id/close, POST :id/cancel*
 - `dashboard`: GET?from&to*
 - `users`: GET*, POST*, PATCH :id*
@@ -54,3 +56,13 @@ Rate limit do login em memória (por processo); IP só com `TRUST_PROXY>=1`.
 ## Git
 Branches `feat/…`, `fix/…`, `refactor/…` a partir de `main`; nunca commitar direto em `main`.
 Migrations Prisma são versionadas (`prisma/migrations`).
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

@@ -7,6 +7,7 @@ import '../modules/tabs/tabs.openapi';
 import '../modules/products/products.openapi';
 import '../modules/stock/stock.openapi';
 import '../modules/dayuse/dayuse.openapi';
+import '../modules/dayuse-sessions/dayuse-sessions.openapi';
 import '../modules/customers/customers.openapi';
 import '../modules/dashboard/dashboard.openapi';
 import '../modules/users/users.openapi';

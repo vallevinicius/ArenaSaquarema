@@ -5,6 +5,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { api } from '@/lib/api-client';
 import { PAYMENT_METHODS, type Dashboard, type PaymentMethod } from '@/lib/types';
+import { IconCheck } from '@/components/icons';
 import { Empty, ErrorBox, PageHeader, Spinner } from '@/components/ui';
 import { money, todayLocal, ymdToBr } from '@/lib/format';
 
@@ -65,8 +66,8 @@ export default function DashboardPage() {
 function Kpi({ label, value, hint, accent = false }: { label: string; value: string; hint?: string; accent?: boolean }) {
   return (
     <div className={`rounded-2xl p-5 shadow-sm ${accent ? 'bg-mar-800 text-white' : 'card'}`}>
-      <p className={`text-xs font-bold tracking-wide uppercase ${accent ? 'text-sol-400' : 'text-mar-700'}`}>{label}</p>
-      <p className={`mt-2 text-3xl font-black ${accent ? 'text-white' : 'text-mar-900'}`}>{value}</p>
+      <p className={`text-sm font-semibold ${accent ? 'text-sol-400' : 'text-mar-700'}`}>{label}</p>
+      <p className={`mt-2 text-3xl ${accent ? 'font-black text-white' : 'font-bold text-mar-900'}`}>{value}</p>
       {hint && <p className={`mt-1 text-xs ${accent ? 'text-mar-200' : 'text-slate-500'}`}>{hint}</p>}
     </div>
   );
@@ -88,7 +89,7 @@ function DashboardBody({ d }: { d: Dashboard }) {
 
       <div className="grid gap-6 xl:grid-cols-3">
         <section className="card p-5 xl:col-span-2">
-          <h2 className="mb-4 font-extrabold text-mar-900">Faturamento por dia</h2>
+          <h2 className="mb-4 font-bold text-mar-900">Faturamento por dia</h2>
           {d.dailyRevenue.length === 0 ? <Empty>Sem vendas no período.</Empty> : (
             <ul className="space-y-2">
               {d.dailyRevenue.map((x) => (
@@ -105,7 +106,7 @@ function DashboardBody({ d }: { d: Dashboard }) {
         </section>
 
         <section className="card p-5">
-          <h2 className="mb-4 font-extrabold text-mar-900">Bar × Day use</h2>
+          <h2 className="mb-4 font-bold text-mar-900">Bar × Day use</h2>
           <div className="mb-6 flex h-4 overflow-hidden rounded-full bg-slate-100" role="img" aria-label={`Bar ${money(d.barRevenue)}, day use ${money(d.dayUseRevenue)}`}>
             <div className="bg-mar-700" style={{ width: `${(Number(d.barRevenue) / revenue) * 100}%` }} />
             <div className="bg-sol-400" style={{ width: `${(Number(d.dayUseRevenue) / revenue) * 100}%` }} />
@@ -130,7 +131,7 @@ function DashboardBody({ d }: { d: Dashboard }) {
 
       <div className="grid gap-6 xl:grid-cols-2">
         <section className="card p-5">
-          <h2 className="mb-4 font-extrabold text-mar-900">Mais vendidos no bar</h2>
+          <h2 className="mb-4 font-bold text-mar-900">Mais vendidos no bar</h2>
           {d.topProducts.length === 0 ? <Empty>Sem vendas no período.</Empty> : (
             <ol className="space-y-3">
               {d.topProducts.map((p, i) => (
@@ -148,10 +149,17 @@ function DashboardBody({ d }: { d: Dashboard }) {
 
         <section className="card p-5">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="font-extrabold text-mar-900">Estoque baixo</h2>
+            <h2 className="font-bold text-mar-900">Estoque baixo</h2>
             <Link href="/estoque" className="text-sm font-semibold text-mar-700 hover:underline">Ver estoque →</Link>
           </div>
-          {d.lowStock.length === 0 ? <Empty>Tudo abastecido ✔</Empty> : (
+          {d.lowStock.length === 0 ? (
+            <Empty>
+              <span className="inline-flex items-center gap-1.5">
+                <IconCheck className="size-4 text-emerald-600" />
+                Tudo abastecido
+              </span>
+            </Empty>
+          ) : (
             <ul className="divide-y divide-slate-100">
               {d.lowStock.map((p) => (
                 <li key={p.id} className="flex justify-between py-2 text-sm">

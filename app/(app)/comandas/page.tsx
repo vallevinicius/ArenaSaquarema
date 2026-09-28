@@ -89,7 +89,7 @@ export default function TabsPage() {
                 </p>
                 <div className="mt-4 flex items-end justify-between">
                   <span className="text-xs text-slate-500">{t.itemsCount} item(ns)</span>
-                  <span className="rounded-lg bg-sol-100 px-3 py-1 text-xl font-black text-mar-900">{money(t.total)}</span>
+                  <span className="rounded-lg bg-sol-100 px-3 py-1 text-xl font-bold text-mar-900">{money(t.total)}</span>
                 </div>
               </div>
             </Link>

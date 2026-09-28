@@ -9,11 +9,12 @@ export const BCRYPT_COST = 12;
 // nos dois casos, impedindo enumeração de usuários por timing.
 const DUMMY_HASH = bcrypt.hashSync('dummy-password-for-timing', BCRYPT_COST);
 
-export async function login(email: string, password: string) {
-  const user = await prisma.user.findUnique({ where: { email } });
+export async function login(identifier: string, password: string) {
+  // Aceita e-mail (case-insensitive, como é salvo) ou nome do usuário (case-sensitive).
+  const user = await prisma.user.findFirst({ where: { OR: [{ email: identifier.toLowerCase() }, { name: identifier }] } });
   const ok = await bcrypt.compare(password, user?.passwordHash ?? DUMMY_HASH);
   // Mesma mensagem para "não existe", "senha errada" e "inativo".
-  if (!user || !ok || !user.active) throw Unauthorized('E-mail ou senha inválidos');
+  if (!user || !ok || !user.active) throw Unauthorized('Usuário ou senha inválidos');
 
   return {
     token: signToken(user.id, user.tokenVersion),

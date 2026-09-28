@@ -16,6 +16,7 @@ import {
   type TabDetail,
   type TabItem,
 } from '@/lib/types';
+import { IconBeer, IconClose, IconSun } from '@/components/icons';
 import { Modal } from '@/components/Modal';
 import { useToast } from '@/components/Toast';
 import { Empty, ErrorBox, Field, FormError, Spinner, StatusBadge } from '@/components/ui';
@@ -102,7 +103,7 @@ export default function TabDetailPage() {
                 <span className="text-sm font-bold text-mar-200">Comanda #{t.id}</span>
                 <StatusBadge status={t.status} />
               </div>
-              <p className="mt-1 truncate text-2xl font-black">{t.customer.name}</p>
+              <p className="mt-1 truncate text-2xl font-bold">{t.customer.name}</p>
               <p className="text-xs text-mar-200">
                 Aberta às {hour(t.openedAt)} por {t.openedBy} {t.notes && `· ${t.notes}`}
               </p>
@@ -136,7 +137,7 @@ export default function TabDetailPage() {
                           if (window.confirm(`Remover ${i.quantity}× ${i.description}?`)) removeItem.mutate(i.id);
                         }}
                       >
-                        ✕
+                        <IconClose className="size-4" />
                       </button>
                     )}
                   </li>
@@ -196,7 +197,10 @@ function ProductPicker({ onAdd, disabled }: { onAdd: (productId: number, qty: nu
   return (
     <section className="card p-5">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-lg font-extrabold text-mar-900">🍺 Bar</h2>
+        <h2 className="flex items-center gap-2 text-lg font-bold text-mar-900">
+          <IconBeer className="text-mar-700" />
+          Bar
+        </h2>
         <div className="flex items-center gap-2">
           <span className="text-sm text-slate-600">Qtd</span>
           <button className="btn-ghost px-3" onClick={() => setQty((q) => Math.max(1, q - 1))} aria-label="Diminuir quantidade">−</button>
@@ -238,7 +242,7 @@ function ProductPicker({ onAdd, disabled }: { onAdd: (productId: number, qty: nu
                 className="group rounded-xl border-2 border-slate-200 bg-white p-3 text-left transition hover:border-sol-400 hover:bg-sol-50 disabled:opacity-40"
               >
                 <p className="line-clamp-2 text-sm font-semibold text-mar-900">{p.name}</p>
-                <p className="mt-2 text-base font-black text-mar-800">{money(p.price)}</p>
+                <p className="mt-2 text-base font-semibold text-mar-800">{money(p.price)}</p>
                 <p className={`text-xs ${p.lowStock ? 'font-semibold text-red-600' : 'text-slate-500'}`}>
                   {p.trackStock ? (out ? 'Sem estoque' : `Estoque: ${p.stock}`) : 'Preparado na hora'}
                 </p>
@@ -268,7 +272,10 @@ function DayUsePicker({
   return (
     <section className="card border-t-4 border-t-sol-400 p-5">
       <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
-        <h2 className="text-lg font-extrabold text-mar-900">☀️ Day Use</h2>
+        <h2 className="flex items-center gap-2 text-lg font-bold text-mar-900">
+          <IconSun className="text-sol-500" />
+          Day Use
+        </h2>
         <div className="flex flex-wrap items-end gap-3">
           <div>
             <label htmlFor="du-date" className="label">Data de uso</label>
@@ -297,7 +304,7 @@ function DayUsePicker({
             >
               <p className="font-bold">{p.name}</p>
               {p.description && <p className="mt-1 line-clamp-2 text-xs text-mar-200">{p.description}</p>}
-              <p className="mt-3 text-xl font-black text-sol-400">{money(p.price)}</p>
+              <p className="mt-3 text-xl font-bold text-sol-400">{money(p.price)}</p>
             </button>
           ))}
         </div>

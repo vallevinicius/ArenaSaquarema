@@ -10,7 +10,7 @@ import { Spinner } from '@/components/ui';
 type AuthCtx = {
   user: Me | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<Me>;
+  login: (identifier: string, password: string) => Promise<Me>;
   logout: () => Promise<void>;
 };
 
@@ -47,8 +47,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const value: AuthCtx = {
     user: me.data ?? null,
     loading: me.isPending,
-    login: async (email, password) => {
-      const user = await api.post<Me>('/auth/login', { email, password });
+    login: async (identifier, password) => {
+      const user = await api.post<Me>('/auth/login', { identifier, password });
       qc.removeQueries({ predicate: (q) => q.queryKey[0] !== 'auth' });
       qc.setQueryData(ME_KEY, user);
       return user;
@@ -68,7 +68,7 @@ export function useAuth() {
   return ctx;
 }
 
-const ADMIN_ONLY = ['/dashboard', '/estoque', '/day-use', '/usuarios'];
+const ADMIN_ONLY = ['/dashboard', '/estoque', '/usuarios'];
 
 /**
  * Guard das páginas. O proxy.ts já barra quem não tem cookie válido; aqui cobrimos

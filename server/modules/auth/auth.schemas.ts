@@ -6,7 +6,8 @@ export const Password = z.string().min(10, 'Mínimo 10 caracteres').max(72, 'Má
 export const LoginInput = registry.register(
   'LoginInput',
   z.object({
-    email: z.email().max(160).transform((v) => v.toLowerCase().trim()).openapi({ example: 'admin@arenasaquarema.com.br' }),
+    // Aceita e-mail ou o nome do usuário (ambos únicos em User).
+    identifier: z.string().trim().min(1).max(160).openapi({ example: 'admin@arenasaquarema.com.br ou admin' }),
     password: z.string().min(1).max(72).openapi({ example: '••••••••••' }),
   }),
 );

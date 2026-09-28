@@ -41,6 +41,40 @@ export type Product = {
 
 export type DayUsePlan = { id: number; name: string; description: string | null; price: string; active: boolean };
 
+export type DayUseSessionStatus = 'ABERTO' | 'FECHADO';
+
+export type DayUseEntry = {
+  id: number;
+  dayUsePlanId: number;
+  planName: string;
+  personName: string;
+  quantity: number;
+  unitPrice: string;
+  subtotal: string;
+  paymentMethod: PaymentMethod;
+  createdBy: string;
+  createdById: number;
+  createdAt: string;
+};
+
+export type DayUseSession = {
+  id: number;
+  date: string;
+  status: DayUseSessionStatus;
+  openedBy: string;
+  closedBy: string | null;
+  openedAt: string;
+  closedAt: string | null;
+  entriesCount: number;
+  peopleCount: number;
+  total: string;
+};
+
+export type DayUseSessionDetail = DayUseSession & {
+  entries: DayUseEntry[];
+  totalsByMethod: { method: PaymentMethod; total: string; count: number }[];
+};
+
 export const MOVEMENT_TYPES = {
   ENTRADA: 'Entrada',
   SAIDA: 'Saída',
