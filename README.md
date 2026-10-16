@@ -1,115 +1,129 @@
-# Arena Saquarema — Bar, Comandas e Day Use
+<div align="center">
 
-Sistema de controle da arena de futevôlei: comandas por cliente, vendas do bar com baixa automática de estoque, venda de day use, movimentação de estoque e dashboard de vendas.
+# Arena Saquarema — Bar, Tabs & Day Use
 
-**Frontend e backend no mesmo app Next.js** (mesmo modelo do PingoDeMeio): as telas ficam em `app/(app)/…`, a API em `app/api/…` (Route Handlers) e tudo roda num único processo e numa única porta com `npm run dev` / `npm start`.
+**Point-of-sale and stock control for a footvolley arena in Saquarema, Brazil.**
 
-| Camada   | Stack |
-|----------|-------|
-| App      | Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS 4, TanStack Query |
-| API      | Route Handlers do Next + Zod 4 (validação) + camada `server/` (regras de negócio) |
-| Banco    | MySQL 8 via Prisma 7 (driver adapter `@prisma/adapter-mariadb`) |
-| Docs     | OpenAPI 3.1 gerado dos schemas Zod → Swagger UI em `/docs` |
+🇧🇷 [Leia em português](README.pt-BR.md)
 
-```
-arena-saquarema/
-├── app/
-│   ├── (app)/            páginas logadas: comandas, clientes, produtos, estoque, day-use, usuarios, dashboard
-│   ├── login/            página de login
-│   ├── docs/             Swagger UI (servido do swagger-ui-dist)
-│   └── api/              Route Handlers: finos, só chamam route() + service
-├── server/               backend (nunca vai para o browser)
-│   ├── modules/          auth, users, customers, products, stock, dayuse, tabs, dashboard
-│   │                     (cada um: *.schemas.ts → *.service.ts + *.openapi.ts)
-│   ├── lib/              route() (auth/RBAC/validação/erros), auth, prisma, rate-limit, logger
-│   ├── docs/             registry OpenAPI
-│   └── config/env.ts     variáveis validadas com Zod
-├── components/ hooks/ lib/   UI e cliente HTTP do front
-├── prisma/               schema, migrations, seed
-├── proxy.ts              redireciona páginas sem sessão para /login
-└── docker-compose.yml    MySQL 8 local
-```
+![Next.js](https://img.shields.io/badge/Next.js-16-000000?logo=nextdotjs&logoColor=white) ![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white) ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white) ![Prisma](https://img.shields.io/badge/Prisma-7-2D3748?logo=prisma&logoColor=white) ![MySQL](https://img.shields.io/badge/MySQL-8-4479A1?logo=mysql&logoColor=white) ![OpenAPI](https://img.shields.io/badge/OpenAPI-3.1-85EA2D?logo=swagger&logoColor=white)
 
-## Rodando localmente
+</div>
 
-Pré-requisitos: Node.js 20.19+ e Docker (ou um MySQL 8 próprio).
+## About
 
-```bash
-docker compose up -d                 # 1. banco
+Management system for the arena's bar: customer tabs, bar sales with automatic stock deduction, day-use passes, stock movements and a sales dashboard.
 
-cp .env.example .env                 # 2. variáveis (antes do install: o Prisma lê DATABASE_URL daqui)
-#   - JWT_SECRET: node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"
-#   - SEED_ADMIN_PASSWORD: senha do primeiro admin (mín. 10 caracteres)
+**Front-end and API live in the same Next.js app**: pages under `app/(app)/…`, the API under `app/api/…` (Route Handlers), all served by a single process on a single port.
 
-npm install                          # 3. dependências (postinstall roda prisma generate)
-npm run db:migrate -- --name init    # 4. primeira migration (commite prisma/migrations)
-npm run db:seed                      # 5. admin + produtos e planos de exemplo
-npm run dev                          # 6. app + API em http://localhost:3000
-```
+## Tech stack
 
-- App: http://localhost:3000
-- Swagger: http://localhost:3000/docs (JSON em `/api/docs.json`)
-
-No Swagger, execute `POST /api/auth/login` primeiro: o cookie de sessão é gravado e usado automaticamente nas demais chamadas.
-
-### Produção
-
-```bash
-npm run build
-npm run db:deploy
-npm start          # porta 3000 (ou -p)
-```
-
-Coloque atrás de um proxy HTTPS (nginx/Caddy) e defina `TRUST_PROXY=1`. Em produção o cookie é `Secure`: **sem HTTPS o login não funciona** (localhost é exceção nos navegadores). O `next build` não precisa do `.env`; as variáveis são validadas na primeira requisição.
-
-## Perfis de acesso
-
-| Ação | OPERADOR (caixa) | ADMIN |
-|---|:---:|:---:|
-| Abrir comanda, lançar itens, fechar comanda | ✔ | ✔ |
-| Cadastrar/editar clientes | ✔ | ✔ |
-| Remover item da comanda | só itens próprios, até 10 min | ✔ |
-| Cancelar comanda (estorna estoque) | — | ✔ |
-| Produtos, preços, planos de day use | só leitura | ✔ |
-| Movimentar estoque (entrada, saída, ajuste) | — | ✔ |
-| Dashboard | — | ✔ |
-| Usuários | — | ✔ |
-
-## Regras de negócio
-
-- **1 comanda aberta por cliente**, garantido por índice único no banco (`openCustomerId`), inclusive sob concorrência.
-- **Baixa de estoque atômica**: `UPDATE ... WHERE stock >= qtd`. Dois caixas vendendo a última unidade ao mesmo tempo → um recebe `409 INSUFFICIENT_STOCK`. Nunca fica negativo.
-- **Comanda travada** (`SELECT ... FOR UPDATE`) ao lançar, remover, fechar ou cancelar: sem item lançado após o fechamento e sem fechamento duplo.
-- **Preço congelado no item**: alterar o preço do produto não altera as comandas já lançadas.
-- **Total sempre recalculado** a partir dos itens (a fonte da verdade), nunca incrementado às cegas.
-- **Estoque só muda por movimentação** (ENTRADA, SAÍDA, AJUSTE, VENDA, ESTORNO), sempre com saldo resultante gravado para auditoria.
-- Produtos com `trackStock=false` (drinks, porções preparados na hora) são vendidos sem controle de estoque.
-- Day use tem **data de uso** (padrão: hoje; não aceita data passada). O dashboard conta pessoas pela data de uso.
-- Datas e relatórios usam o fuso `America/Sao_Paulo`. O banco grava em UTC.
-
-## Segurança
-
-- JWT HS256 em **cookie httpOnly + SameSite=Strict + Secure (prod)**. O token nunca fica acessível ao JavaScript, então XSS não consegue roubá-lo.
-- `algorithms`, `issuer` e `audience` fixos na verificação (bloqueia `alg=none` e confusão de algoritmo).
-- **Revogação imediata**: `tokenVersion` no usuário; trocar senha, papel ou desativar derruba as sessões abertas.
-- bcrypt custo 12; senha de 10 a 72 caracteres; comparação com hash fictício quando o e-mail não existe (tempo constante, sem enumeração de usuários).
-- Rate limit no login: 20 tentativas / 15 min por conta e 10 por IP. O IP só é usado com `TRUST_PROXY>=1` (atrás de proxy reverso); sem proxy o `X-Forwarded-For` é do cliente e é ignorado. O contador é em memória, por processo: com várias instâncias, mova para Redis.
-- Validação Zod em todo body/query/params; campos não declarados são descartados (sem mass assignment).
-- Somente SQL parametrizado (Prisma + `$queryRaw` com tagged template).
-- IDOR: itens sempre buscados por `id + tabId`.
-- Erros 500 com mensagem genérica; detalhes vão só para o log (pino com redaction de cookie/authorization/senha).
-- Mutações exigem `Content-Type: application/json` e Origin igual ao host (CSRF, além do SameSite=Strict). Body limitado a 100 kb.
-- Headers de segurança no `next.config.ts` (CSP, HSTS, X-Frame-Options, nosniff). A CSP tem `'unsafe-inline'` em scripts porque o Next injeta scripts de hidratação; o token fica protegido pelo cookie httpOnly.
-- `proxy.ts` só faz o redirect das páginas; a barreira real é o `route()` em cada Route Handler (deny by default).
-
-## Scripts
-
-| Script | O que faz |
+| Layer | Technology |
 |---|---|
-| `npm run dev` | App + API com hot reload |
-| `npm run build` / `npm start` | Build e servidor de produção |
-| `npm run typecheck` | Gera tipos de rota do Next e roda `tsc` |
-| `npm run db:migrate -- --name <nome>` | Cria e aplica migration em dev |
-| `npm run db:deploy` | Aplica migrations em produção |
-| `npm run db:seed` | Cria admin e dados de exemplo (idempotente, não reseta senha) |
-| `npm run openapi:export` | Gera `openapi.json` estático |
+| App | Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS 4, TanStack Query |
+| API | Next.js Route Handlers + Zod 4 validation + a `server/` business layer |
+| Data | MySQL 8 via Prisma 7 (`@prisma/adapter-mariadb` driver adapter) |
+| Docs | OpenAPI 3.1 generated from the Zod schemas → Swagger UI at `/docs` |
+
+## Architecture
+
+```
+app/
+  (app)/        authenticated pages: tabs, customers, products, stock, day-use, users, dashboard
+  login/        login page
+  docs/         Swagger UI (served from swagger-ui-dist)
+  api/          thin Route Handlers: route() + service call only
+server/         back-end code (never shipped to the browser)
+  modules/      auth, users, customers, products, stock, dayuse, tabs, dashboard
+                (each: *.schemas.ts → *.service.ts + *.openapi.ts)
+  lib/          route() (auth / RBAC / validation / errors), auth, prisma, rate-limit, logger
+  config/env.ts environment validated with Zod
+prisma/         schema, migrations, seed
+proxy.ts        redirects pages without a session to /login
+```
+
+## Roles
+
+| Action | OPERATOR (cashier) | ADMIN |
+|---|:---:|:---:|
+| Open a tab, add items, close a tab | ✔ | ✔ |
+| Create / edit customers | ✔ | ✔ |
+| Remove an item from a tab | own items, up to 10 min | ✔ |
+| Cancel a tab (returns stock) | — | ✔ |
+| Products, prices, day-use plans | read only | ✔ |
+| Stock movements (in, out, adjustment) | — | ✔ |
+| Dashboard and users | — | ✔ |
+
+## Business rules
+
+- **One open tab per customer**, enforced by a unique index (`openCustomerId`), including under concurrency.
+- **Atomic stock deduction**: `UPDATE … WHERE stock >= qty`. Two cashiers selling the last unit at the same time → one gets `409 INSUFFICIENT_STOCK`. Stock never goes negative.
+- **Tab row lock** (`SELECT … FOR UPDATE`) when adding, removing, closing or cancelling: no item after closing and no double close.
+- **Price frozen on the item**: changing a product price does not change tabs already recorded.
+- **Totals are always recalculated** from the items, never blindly incremented.
+- **Stock only changes through movements** (IN, OUT, ADJUSTMENT, SALE, REVERSAL), each storing the resulting balance for auditing.
+- Products with `trackStock=false` (drinks and dishes made to order) are sold without stock control.
+- Day use has a **usage date** (default today, past dates rejected); the dashboard counts people by usage date.
+- Dates and reports use `America/Sao_Paulo`; the database stores UTC.
+
+## Security
+
+- HS256 JWT in an **httpOnly + SameSite=Strict + Secure (prod) cookie**: JavaScript can never read the token.
+- `algorithms`, `issuer` and `audience` pinned on verification (blocks `alg=none` and algorithm confusion).
+- **Immediate revocation** with `tokenVersion`: changing password or role, or deactivating a user, ends open sessions.
+- bcrypt cost 12; passwords of 10–72 characters; dummy-hash comparison for unknown e-mails (constant time, no user enumeration).
+- Login rate limit: 20 attempts / 15 min per account and 10 per IP. The IP is only trusted with `TRUST_PROXY>=1`.
+- Zod validation on every body/query/params; undeclared fields are dropped (no mass assignment).
+- Parameterized SQL only (Prisma + `$queryRaw` tagged templates). IDOR: tab items are always fetched by `id + tabId`.
+- 500 errors return a generic message; details go to the log only (pino with redaction of cookie/authorization/password).
+- Mutations require `Content-Type: application/json` and an `Origin` matching the host (CSRF, on top of SameSite=Strict). Body limited to 100 kB.
+- Security headers in `next.config.ts` (CSP, HSTS, X-Frame-Options, nosniff).
+- `proxy.ts` only redirects pages; the real barrier is `route()` in each Route Handler (deny by default).
+
+## Getting started
+
+**Prerequisites:** Node.js 20.19+, Docker (or your own MySQL 8)
+
+```bash
+docker compose up -d                 # 1. database
+cp .env.example .env                 # 2. variables (before install: Prisma reads DATABASE_URL)
+#   JWT_SECRET: node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"
+#   SEED_ADMIN_PASSWORD: first admin password (min. 10 characters)
+npm install                          # 3. postinstall runs prisma generate
+npm run db:migrate -- --name init    # 4. first migration
+npm run db:seed                      # 5. admin + sample products and plans
+npm run dev                          # 6. app + API on http://localhost:3000
+```
+
+Swagger UI: http://localhost:3000/docs (JSON at `/api/docs.json`). Call `POST /api/auth/login` first; the session cookie is reused by the other calls.
+
+**Production:** `npm run build && npm run db:deploy && npm start`, behind an HTTPS proxy with `TRUST_PROXY=1`. The cookie is `Secure` in production, so login does not work without HTTPS.
+
+### Environment variables
+
+`.env.example` — never commit real values.
+
+| Variable | Description |
+|---|---|
+| `DATABASE_URL` | MySQL connection string |
+| `JWT_SECRET` / `JWT_EXPIRES_IN` | Session token secret and lifetime |
+| `TRUST_PROXY` | Reverse proxies in front of the app |
+| `SWAGGER_ENABLED` | Exposes `/docs` |
+| `SEED_ADMIN_NAME` / `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` | First admin created by the seed |
+| `DB_ALLOW_PUBLIC_KEY_RETRIEVAL` | MySQL 8 auth option for the MariaDB driver |
+
+### Scripts
+
+| Command | Description |
+|---|---|
+| `npm run dev` | App + API with hot reload |
+| `npm run build` / `npm start` | Production build and server |
+| `npm run typecheck` | Generates Next route types and runs `tsc` |
+| `npm run db:migrate -- --name <name>` | Create and apply a migration (dev) |
+| `npm run db:deploy` | Apply migrations (production) |
+| `npm run db:seed` | Admin and sample data (idempotent) |
+| `npm run openapi:export` | Export a static `openapi.json` |
+
+## Team
+
+- [Vinicius do Valle](https://github.com/vallevinicius)
