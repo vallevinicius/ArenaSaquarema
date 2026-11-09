@@ -18,6 +18,6 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // Tudo menos a home pública ("/"), API, login, docs, assets do Next e arquivos estáticos.
-  matcher: ['/((?!api|login|docs|horarios|_next/static|_next/image|manifest.webmanifest|.*\\.(?:svg|png|ico|webp)$).+)'],
+  // Tudo menos o site público ("/", horários, privacidade, robots, sitemap, imagem de compartilhamento), API, login, docs, assets do Next e arquivos estáticos.
+  matcher: ['/((?!api|login|docs|horarios|privacidade|robots\\.txt|sitemap\\.xml|opengraph-image|_next/static|_next/image|manifest.webmanifest|.*\\.(?:svg|png|ico|webp)$).+)'],
 };
