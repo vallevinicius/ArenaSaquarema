@@ -2,9 +2,10 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState, type CSSProperties, type FormEvent } from 'react';
+import { ApiError } from '@/lib/api-client';
 import { Emblem, Logo } from '@/components/Logo';
 import { Field, FormError } from '@/components/ui';
-import { useAuth } from '@/hooks/useAuth';
+import { homeFor, useAuth } from '@/hooks/useAuth';
 
 // useSearchParams exige Suspense para o Next pré-renderizar a página.
 export default function LoginPage() {
@@ -21,15 +22,21 @@ function safeFrom(v: string | null) {
 }
 
 function LoginForm() {
-  const { user, login } = useAuth();
+  const { user, login, confirmPasswordReset } = useAuth();
   const router = useRouter();
-  const from = safeFrom(useSearchParams().get('from'));
+  const requested = useSearchParams().get('from');
   const [error, setError] = useState<unknown>(null);
   const [pending, setPending] = useState(false);
+  // Etapa 2 (aluno com senha provisória): código do e-mail + senha nova.
+  const [reset, setReset] = useState<{ identifier: string; email: string } | null>(null);
+
+  // Aluno sempre cai na própria área; a equipe volta para onde estava (ou /painel).
+  const destination = (role: 'ADMIN' | 'OPERADOR' | 'ALUNO') => (role === 'ALUNO' ? homeFor(role) : safeFrom(requested));
 
   useEffect(() => {
-    if (user) router.replace(from);
-  }, [user, from, router]);
+    if (user) router.replace(destination(user.role));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, router]);
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -37,8 +44,17 @@ function LoginForm() {
     setPending(true);
     setError(null);
     try {
-      await login(String(form.get('identifier')), String(form.get('password')));
-      router.replace(from);
+      if (reset) {
+        const newPassword = String(form.get('newPassword'));
+        if (newPassword !== String(form.get('confirm'))) throw new ApiError(0, 'PASSWORD_MISMATCH', 'As senhas não conferem');
+        const me = await confirmPasswordReset(reset.identifier, String(form.get('code')), newPassword);
+        router.replace(destination(me.role));
+        return;
+      }
+      const identifier = String(form.get('identifier')).trim();
+      const res = await login(identifier, String(form.get('password')));
+      if ('passwordResetRequired' in res) setReset({ identifier, email: res.email });
+      else router.replace(destination(res.role));
     } catch (err) {
       setError(err);
     } finally {
@@ -94,19 +110,40 @@ function LoginForm() {
             </div>
           </div>
           <div className="animate-rise" style={{ '--delay': '120ms' } as CSSProperties}>
-            <h2 className="text-2xl font-extrabold text-mar-900">Entrar</h2>
-            <p className="text-sm text-slate-500">Acesso restrito à equipe da arena.</p>
+            <h2 className="text-2xl font-extrabold text-mar-900">{reset ? 'Confirme seu e-mail' : 'Entrar'}</h2>
+            <p className="text-sm text-slate-500">
+              {reset ? (
+                <>Enviamos um código de 6 dígitos para <strong>{reset.email}</strong>. Digite-o e escolha sua senha.</>
+              ) : (
+                'Alunos e equipe da Arena Saquarema.'
+              )}
+            </p>
           </div>
-          <div className="animate-rise" style={{ '--delay': '220ms' } as CSSProperties}>
-            <Field label="E-mail ou usuário" name="identifier" type="text" autoComplete="username" required autoFocus />
-          </div>
-          <div className="animate-rise" style={{ '--delay': '300ms' } as CSSProperties}>
-            <Field label="Senha" name="password" type="password" autoComplete="current-password" required />
-          </div>
+          {reset ? (
+            <>
+              <Field label="Código do e-mail" name="code" inputMode="numeric" autoComplete="one-time-code" pattern="\d{6}" maxLength={6} required autoFocus />
+              <Field label="Nova senha" name="newPassword" type="password" autoComplete="new-password" required minLength={10} maxLength={72} hint="Mínimo 10 caracteres" />
+              <Field label="Repita a nova senha" name="confirm" type="password" autoComplete="new-password" required minLength={10} maxLength={72} />
+            </>
+          ) : (
+            <>
+              <div className="animate-rise" style={{ '--delay': '220ms' } as CSSProperties}>
+                <Field label="E-mail ou usuário" name="identifier" type="text" autoComplete="username" required autoFocus />
+              </div>
+              <div className="animate-rise" style={{ '--delay': '300ms' } as CSSProperties}>
+                <Field label="Senha" name="password" type="password" autoComplete="current-password" required />
+              </div>
+            </>
+          )}
           <FormError error={error} />
           <button className="animate-rise btn-primary w-full py-3" style={{ '--delay': '380ms' } as CSSProperties} disabled={pending}>
-            {pending ? 'Entrando...' : 'Entrar'}
+            {pending ? 'Aguarde...' : reset ? 'Definir senha e entrar' : 'Entrar'}
           </button>
+          {reset && (
+            <button type="button" className="w-full text-sm font-semibold text-mar-700 hover:underline" onClick={() => { setReset(null); setError(null); }}>
+              Voltar
+            </button>
+          )}
           <div
             className="animate-rise h-1 rounded-full bg-gradient-to-r from-mar-800 via-sol-400 to-mar-800"
             style={{ '--delay': '460ms' } as CSSProperties}

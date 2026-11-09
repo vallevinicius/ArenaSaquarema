@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs';
 import { BadRequest, Unauthorized } from '../../lib/errors';
 import { prisma } from '../../lib/prisma';
 import { signToken } from '../../lib/auth';
+import { maskEmail, sendCode } from './password-reset.service';
 
 export const BCRYPT_COST = 12;
 
@@ -15,6 +16,13 @@ export async function login(identifier: string, password: string) {
   const ok = await bcrypt.compare(password, user?.passwordHash ?? DUMMY_HASH);
   // Mesma mensagem para "não existe", "senha errada" e "inativo".
   if (!user || !ok || !user.active) throw Unauthorized('Usuário ou senha inválidos');
+
+  // Aluno com senha provisória: a senha sozinha NÃO abre sessão. Manda o código por e-mail
+  // e o front pede código + senha nova (POST /auth/password-reset).
+  if (user.mustChangePassword) {
+    await sendCode(user);
+    return { passwordResetRequired: true as const, email: maskEmail(user.email) };
+  }
 
   return {
     token: signToken(user.id, user.tokenVersion),

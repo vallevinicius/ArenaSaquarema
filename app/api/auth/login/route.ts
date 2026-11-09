@@ -19,8 +19,10 @@ export const POST = route({ auth: false, body: LoginInput }, async ({ body, req 
   const byIp = ipKey ? hit(ipKey, 10, WINDOW_MS) : byIdentifier;
   if (!byIp.allowed || !byIdentifier.allowed) throw TooManyRequests(Math.max(byIp.retryAfterSec, byIdentifier.retryAfterSec));
 
-  const { token, user } = await service.login(body.identifier, body.password);
+  const result = await service.login(body.identifier, body.password);
   if (ipKey) reset(ipKey);
   reset(identifierKey);
-  return setSessionCookie(NextResponse.json(user), token);
+  // 202: senha provisória correta, falta confirmar o código do e-mail (sem cookie de sessão).
+  if ('passwordResetRequired' in result) return NextResponse.json(result, { status: 202 });
+  return setSessionCookie(NextResponse.json(result.user), result.token);
 });

@@ -15,6 +15,7 @@ datasource db {
 enum Role {
   ADMIN
   OPERADOR
+  ALUNO // aluno da escolinha: só vê o próprio perfil e faz check-in
 }
 
 enum ProductCategory {
@@ -61,25 +62,29 @@ enum DayUseSessionStatus {
 }
 
 model User {
-  id           Int      @id @default(autoincrement())
+  id                 Int      @id @default(autoincrement())
   // Único: também serve como identificador de login alternativo ao e-mail.
-  name         String   @unique @db.VarChar(120)
-  email        String   @unique @db.VarChar(160)
-  passwordHash String   @db.VarChar(100)
-  role         Role     @default(OPERADOR)
-  active       Boolean  @default(true)
+  name               String   @unique @db.VarChar(120)
+  email              String   @unique @db.VarChar(160)
+  passwordHash       String   @db.VarChar(100)
+  role               Role     @default(OPERADOR)
+  active             Boolean  @default(true)
+  // true enquanto o aluno usa a senha padrão: o login só vira sessão depois de confirmar o código enviado por e-mail.
+  mustChangePassword Boolean  @default(false)
   // Incrementado em troca de senha/desativação: invalida JWTs emitidos antes.
-  tokenVersion Int      @default(0)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  tokenVersion       Int      @default(0)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 
-  tabsOpened           Tab[]           @relation("TabOpenedBy")
-  tabsClosed           Tab[]           @relation("TabClosedBy")
+  tabsOpened           Tab[]              @relation("TabOpenedBy")
+  tabsClosed           Tab[]              @relation("TabClosedBy")
   tabItems             TabItem[]
   stockMovements       StockMovement[]
-  dayUseSessionsOpened DayUseSession[] @relation("DayUseSessionOpenedBy")
-  dayUseSessionsClosed DayUseSession[] @relation("DayUseSessionClosedBy")
+  dayUseSessionsOpened DayUseSession[]    @relation("DayUseSessionOpenedBy")
+  dayUseSessionsClosed DayUseSession[]    @relation("DayUseSessionClosedBy")
   dayUseEntries        DayUseEntry[]
+  checkIns             CheckIn[]
+  passwordResetCode    PasswordResetCode?
 
   @@map("users")
 }
@@ -247,4 +252,34 @@ model StockMovement {
   @@index([productId, createdAt])
   @@index([type, createdAt])
   @@map("stock_movements")
+}
+
+// Código de 6 dígitos enviado por e-mail para o aluno definir a senha no primeiro acesso.
+// Só o hash (HMAC) fica no banco; 1 código ativo por usuário.
+model PasswordResetCode {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @unique
+  codeHash  String   @db.Char(64)
+  expiresAt DateTime
+  // Tentativas erradas: ao chegar no limite o código é inutilizado.
+  attempts  Int      @default(0)
+  sentAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("password_reset_codes")
+}
+
+// Presença do aluno: no máximo 1 check-in por aluno por dia (dia local da arena).
+model CheckIn {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  date      DateTime @db.Date
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@index([date])
+  @@map("check_ins")
 }

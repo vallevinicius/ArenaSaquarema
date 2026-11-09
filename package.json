@@ -16,7 +16,9 @@
     "db:deploy": "prisma migrate deploy",
     "db:seed": "tsx --env-file=.env prisma/seed.ts",
     "db:studio": "prisma studio",
-    "openapi:export": "tsx server/docs/export.ts"
+    "openapi:export": "tsx server/docs/export.ts",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "overrides": {
     "mariadb": "^3.5.4",
@@ -48,6 +50,8 @@
     "prisma": "^7.10.0",
     "tailwindcss": "^4.3.3",
     "tsx": "^4.23.15",
-    "typescript": "~5.9"
+    "typescript": "~5.9",
+    "vitest": "^5.1.0",
+    "vitest-mock-extended": "^6.0.0"
   }
 }

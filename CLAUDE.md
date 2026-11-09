@@ -34,7 +34,7 @@ App único Next.js 16 (App Router), front e API no mesmo processo/porta, no mesm
 - Mensagens em pt-BR. Códigos de erro em `UPPER_SNAKE` (`INSUFFICIENT_STOCK`, `TAB_NOT_OPEN`, `CUSTOMER_HAS_OPEN_TAB`...).
 
 ## Endpoints (`/api`)
-- `auth`: POST login, POST logout, GET me, PATCH password
+- `auth`: POST login (202 = aluno com senha provisória), POST password-reset (código do e-mail + senha nova), POST logout, GET me, PATCH password
 - `customers`: GET, GET :id, POST, PATCH :id
 - `products`: GET, GET :id, POST*, PATCH :id*
 - `stock/movements`: GET*, POST* (ENTRADA | SAIDA | AJUSTE)
@@ -42,16 +42,25 @@ App único Next.js 16 (App Router), front e API no mesmo processo/porta, no mesm
 - `day-use-sessions`: GET, GET current, GET :id, POST (abre o caixa do dia), POST :id/entries (check-in de pagamento), DELETE :id/entries/:entryId, POST :id/close
 - `tabs`: GET, GET :id, POST, POST :id/items, DELETE :id/items/:itemId, POST :id/close, POST :id/cancel*
 - `dashboard`: GET?from&to*
-- `users`: GET*, POST*, PATCH :id*
+- `users`: GET*, POST*, PATCH :id* (só equipe; alunos ficam em `students`)
+- `students`: GET*?month, POST* (só e-mail), PATCH :id* (nome, ativo, resetPassword)
+- `me`: POST check-in (ALUNO), GET attendance?month (ALUNO)
+- `check-ins`: GET?date*, DELETE :id*
 - `health`, `docs.json` (públicos). Rota inexistente em /api → 404 JSON (`app/api/[...path]`).
 (* = ADMIN)
 
 ## Auth
+Perfis: `ADMIN`, `OPERADOR` (equipe) e `ALUNO`. `route()` sem `roles` é **só da equipe**: aluno nunca entra por omissão; rotas de aluno declaram `roles: ['ALUNO']`.
+Aluno: admin cadastra só o e-mail (`POST /students`), senha padrão `mudar123` + `mustChangePassword`. Login com a senha padrão NÃO abre sessão: responde 202, envia código de 6 dígitos por e-mail (Resend, `server/lib/mail.ts`) e o front chama `POST /auth/password-reset`. Código: HMAC no banco, 10 min, 5 tentativas, uso único.
+Presença: `CheckIn` (1 por aluno/dia, dia local da arena). Taxa = dias do aluno ÷ dias do mês com ao menos um check-in (regra em `attendance.utils.ts`).
 JWT HS256 em cookie `arena_token` (httpOnly, SameSite=Strict, Secure em prod, path `/`). `tokenVersion` no usuário revoga sessões.
 Rate limit do login em memória (por processo); IP só com `TRUST_PROXY>=1`.
 
 ## Variáveis (.env na raiz)
-`DATABASE_URL`, `DB_ALLOW_PUBLIC_KEY_RETRIEVAL` (só dev), `JWT_SECRET` (≥32), `JWT_EXPIRES_IN`, `SWAGGER_ENABLED`, `TRUST_PROXY`, `SEED_ADMIN_*`.
+`DATABASE_URL`, `DB_ALLOW_PUBLIC_KEY_RETRIEVAL` (só dev), `JWT_SECRET` (≥32), `JWT_EXPIRES_IN`, `SWAGGER_ENABLED`, `TRUST_PROXY`, `RESEND_API_KEY`, `MAIL_FROM`, `SEED_ADMIN_*`.
+
+## Testes
+`npm test` (Vitest, `server/**/*.test.ts`): Prisma mockado com `vitest-mock-extended`, sem banco nem rede.
 
 ## Git
 Branches `feat/…`, `fix/…`, `refactor/…` a partir de `main`; nunca commitar direto em `main`.

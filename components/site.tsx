@@ -94,8 +94,8 @@ export function SiteHeader() {
           <Link href="/horarios" className={link}>Horários</Link>
           <a href="/#planos" className={link}>Planos</a>
           <a href="/#instagram" className={`${link} hidden sm:block`}>Instagram</a>
-          <Link href="/login" className="ml-1 rounded-full bg-mar-900 px-4 py-2 text-white hover:bg-mar-800">
-            Área da equipe
+          <Link href="/login" className="ml-1 rounded-full bg-mar-900 px-5 py-2 text-white hover:bg-mar-800">
+            Entrar
           </Link>
         </nav>
       </div>
@@ -123,7 +123,7 @@ export function SiteFooter() {
               <li><Link href="/horarios" className="hover:text-white">Horários</Link></li>
               <li><a href="/#planos" className="hover:text-white">Planos</a></li>
               <li><a href="/#instagram" className="hover:text-white">Instagram</a></li>
-              <li><Link href="/login" className="hover:text-white">Área da equipe</Link></li>
+              <li><Link href="/login" className="hover:text-white">Entrar</Link></li>
             </ul>
           </div>
           <div>
