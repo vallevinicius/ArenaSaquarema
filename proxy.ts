@@ -18,6 +18,6 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // Tudo menos API, login, docs, assets do Next e arquivos estáticos.
-  matcher: ['/((?!api|login|docs|_next/static|_next/image|favicon.svg|.*\\.(?:svg|png|ico|webp)$).*)'],
+  // Tudo menos a home pública ("/"), API, login, docs, assets do Next e arquivos estáticos.
+  matcher: ['/((?!api|login|docs|horarios|_next/static|_next/image|manifest.webmanifest|.*\\.(?:svg|png|ico|webp)$).+)'],
 };
