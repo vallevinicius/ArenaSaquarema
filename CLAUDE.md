@@ -46,6 +46,7 @@ App único Next.js 16 (App Router), front e API no mesmo processo/porta, no mesm
 - `students`: GET*?month, POST* (só e-mail), PATCH :id* (nome, ativo, resetPassword)
 - `me`: POST check-in (ALUNO), GET attendance?month (ALUNO)
 - `check-ins`: GET?date*, DELETE :id*
+- `photos`: GET*, POST* (multipart, reencode WebP), PATCH :id*, DELETE :id*, GET :id/file (público). Arquivos em `UPLOAD_DIR` (disco persistente em prod).
 - `health`, `docs.json` (públicos). Rota inexistente em /api → 404 JSON (`app/api/[...path]`).
 (* = ADMIN)
 
