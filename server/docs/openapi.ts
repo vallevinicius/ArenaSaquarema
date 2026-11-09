@@ -17,6 +17,7 @@ import '../modules/photos/photos.openapi';
 import '../modules/profiles/profiles.openapi';
 import '../modules/health/health.openapi';
 import '../modules/memberships/memberships.openapi';
+import '../modules/partners/partners.openapi';
 
 let cached: ReturnType<OpenApiGeneratorV31['generateDocument']> | null = null;
 
@@ -46,6 +47,7 @@ export function buildOpenApiDocument() {
       { name: 'Fotos' },
       { name: 'Perfis' },
       { name: 'Mensalidades' },
+      { name: 'Parceiros' },
       { name: 'Saúde' },
     ],
   }));
