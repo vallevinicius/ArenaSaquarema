@@ -21,7 +21,7 @@ export default async function HomePage() {
   return (
     <>
       {/* Hero: a quadra. O título acompanha o arco da bola e ela cruza a rede ao carregar. */}
-      <section className="relative overflow-hidden bg-areia-100 pt-28 lg:pt-32">
+      <section className="relative overflow-hidden overflow-x-clip bg-areia-100 pt-28 lg:pt-32">
         <div className="animate-bloom absolute -top-24 -right-24 size-80 rounded-full bg-sol-400 sm:size-[30rem]" style={d(0)} aria-hidden="true" />
         <div className="animate-bloom absolute top-24 right-[7%] hidden lg:block" style={d(150)}>
           <Emblem size={230} className="ring-8 ring-mar-900" />
@@ -45,7 +45,7 @@ export default async function HomePage() {
             </div>
           </div>
         </div>
-        <Quadra className="mt-6 block h-44 sm:h-60 lg:h-72" />
+        <Quadra className="mt-6 block h-auto lg:h-72" />
       </section>
 
       {/* Níveis */}
@@ -86,12 +86,12 @@ export default async function HomePage() {
             {PLANOS.map((p) => (
               <article
                 key={p.nome}
-                className={`relative flex flex-col justify-between gap-10 p-8 before:pointer-events-none before:absolute before:inset-3 before:border-2 sm:p-10 ${
+                className={`relative flex flex-col justify-between gap-10 p-8 before:pointer-events-none before:absolute before:inset-3 before:border-2 max-sm:p-6 sm:p-10 ${
                   p.destaque ? 'bg-mar-800 text-white before:border-sol-400/50' : 'bg-areia-50 text-mar-900 before:border-white'
                 }`}
               >
                 <div className="flex items-start justify-between gap-4">
-                  <p className={`font-display text-[9rem] leading-[0.75] font-black ${p.destaque ? 'text-sol-400' : 'text-mar-800'}`}>
+                  <p className={`font-display text-[7rem] leading-[0.75] sm:text-[9rem] font-black ${p.destaque ? 'text-sol-400' : 'text-mar-800'}`}>
                     {p.nome.charAt(0)}×
                   </p>
                   {p.destaque && <span className="mt-2 rounded-full bg-sol-400 px-3 py-1 text-sm font-extrabold text-mar-950">Mais completo</span>}
@@ -99,7 +99,7 @@ export default async function HomePage() {
                 <div>
                   <p className="text-lg font-bold">{p.nome}</p>
                   <p className="mt-1 flex items-baseline gap-2">
-                    <span className="font-display text-7xl leading-none font-black">R$ {p.preco}</span>
+                    <span className="font-display text-6xl leading-none font-black sm:text-7xl">R$ {p.preco}</span>
                     <span className={p.destaque ? 'text-mar-200' : 'text-mar-700'}>por mês</span>
                   </p>
                   <p className={`mt-3 ${p.destaque ? 'text-mar-100' : 'text-mar-800'}`}>{p.extra}</p>

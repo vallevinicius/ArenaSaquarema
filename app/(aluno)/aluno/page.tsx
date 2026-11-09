@@ -47,7 +47,7 @@ export default function StudentPage() {
 
   return (
     <>
-      <header className="mx-auto flex max-w-3xl items-center justify-between px-5 py-4">
+      <header className="mx-auto flex max-w-3xl items-center justify-between gap-3 px-5 py-4">
         <Link href="/" className="flex items-center gap-3" aria-label="Arena Saquarema, site">
           <Emblem size={44} />
           <span className="font-display text-2xl leading-[0.85] font-black text-mar-900">
@@ -102,8 +102,8 @@ export default function StudentPage() {
                 <h2 className="text-lg font-extrabold text-mar-900 capitalize">{monthLabel(month)}</h2>
                 <button className="rounded-full px-3 py-1.5 text-sm font-bold text-mar-800 hover:bg-mar-900/10 disabled:opacity-30" disabled={isCurrent} onClick={() => setMonth(shiftMonth(month, 1))} aria-label="Próximo mês">→</button>
               </div>
-              <p className="mt-4 flex items-baseline gap-2">
-                <span className="font-display text-[7rem] leading-[0.8] font-black text-mar-800">{att.data.presenceRate}%</span>
+              <p className="mt-4 flex flex-wrap items-baseline gap-x-2">
+                <span className="font-display text-[5.5rem] sm:text-[7rem] leading-[0.8] font-black text-mar-800">{att.data.presenceRate}%</span>
                 <span className="text-lg font-bold text-mar-900">de presença</span>
               </p>
               <div className="mt-5 h-3 overflow-hidden rounded-full bg-mar-100" role="img" aria-label={`${att.data.presenceRate}% de presença`}>

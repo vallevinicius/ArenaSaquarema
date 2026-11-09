@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import type { CSSProperties } from 'react';
 import { Emblem } from '@/components/Logo';
+import { SiteMenu } from '@/components/SiteMenu';
 
 export const PLANOS = [
   { nome: '2x na semana', preco: 130, destaque: false, extra: 'Ideal para começar e manter o ritmo' },
@@ -76,25 +77,26 @@ export function Degraus() {
 }
 
 export function SiteHeader() {
-  const link = 'rounded-full px-3 py-2 hover:bg-mar-900/10';
+  const link = 'rounded-full px-2.5 py-2 hover:bg-mar-900/10 sm:px-3';
   return (
     <header className="absolute inset-x-0 top-0 z-20">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4">
-        <Link href="/" className="flex items-center gap-3" aria-label="Arena Saquarema, página inicial">
-          <Emblem size={44} />
-          <span className="font-display text-2xl leading-[0.85] font-black text-mar-900">
+      <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-4 py-4 sm:px-5">
+        <Link href="/" className="flex shrink-0 items-center gap-2 sm:gap-3" aria-label="Arena Saquarema, página inicial">
+          <Emblem size={40} />
+          <span className="font-display text-xl sm:text-2xl leading-[0.85] font-black text-mar-900">
             ARENA
-            <span className="block text-base tracking-[0.2em] text-mar-700">SAQUAREMA</span>
+            <span className="block text-sm tracking-[0.2em] text-mar-700 sm:text-base">SAQUAREMA</span>
           </span>
         </Link>
-        <nav className="flex items-center gap-1 text-sm font-bold text-mar-900">
+        <nav className="hidden items-center gap-1 text-sm font-bold text-mar-900 sm:flex">
           <Link href="/horarios" className={link}>Horários</Link>
           <a href="/#planos" className={link}>Planos</a>
-          <a href="/#instagram" className={`${link} hidden sm:block`}>Instagram</a>
+          <a href="/#instagram" className={link}>Instagram</a>
           <Link href="/login" className="ml-1 rounded-full bg-mar-900 px-5 py-2 text-white hover:bg-mar-800">
             Entrar
           </Link>
         </nav>
+        <SiteMenu />
       </div>
     </header>
   );
