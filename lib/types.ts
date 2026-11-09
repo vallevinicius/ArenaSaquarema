@@ -12,12 +12,22 @@ export type Profile = { id: number; name: string; description: string | null; pe
 /** Login de aluno com senha provisória: sem sessão ainda, falta confirmar o código enviado por e-mail. */
 export type PasswordResetRequired = { passwordResetRequired: true; email: string };
 
+export type StudentLevel = 'INICIANTE_A' | 'INICIANTE_B' | 'INTERMEDIARIO' | 'AVANCADO';
+export const STUDENT_LEVELS: Record<StudentLevel, { label: string; badge: string }> = {
+  INICIANTE_A: { label: 'Iniciante A', badge: 'bg-mar-100 text-mar-800' },
+  INICIANTE_B: { label: 'Iniciante B', badge: 'bg-mar-200 text-mar-900' },
+  INTERMEDIARIO: { label: 'Intermediário', badge: 'bg-sol-100 text-sol-700' },
+  AVANCADO: { label: 'Avançado', badge: 'bg-sol-300 text-mar-950' },
+};
+
 export type Student = {
   id: number;
   name: string;
   email: string;
   active: boolean;
   mustChangePassword: boolean;
+  level: StudentLevel | null;
+  phone: string | null;
   createdAt: string;
   daysAttended: number;
   presenceRate: number;
@@ -33,7 +43,7 @@ export type MyAttendance = {
   days: string[];
 };
 
-export type DayCheckIn = { id: number; studentId: number; studentName: string; studentEmail: string; createdAt: string };
+export type DayCheckIn = { id: number; studentId: number; studentName: string; studentEmail: string; studentLevel: StudentLevel | null; createdAt: string };
 
 export type Customer = {
   id: number;
