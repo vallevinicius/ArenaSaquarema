@@ -57,13 +57,14 @@ export async function listByDay(date = todayLocal()) {
   const rows = await prisma.checkIn.findMany({
     where: { date: dateOnly(date) },
     orderBy: { createdAt: 'asc' },
-    select: { id: true, createdAt: true, user: { select: { id: true, name: true, email: true } } },
+    select: { id: true, createdAt: true, user: { select: { id: true, name: true, email: true, level: true } } },
   });
   return rows.map((r) => ({
     id: r.id,
     studentId: r.user.id,
     studentName: r.user.name,
     studentEmail: r.user.email,
+    studentLevel: r.user.level ?? null,
     createdAt: r.createdAt.toISOString(),
   }));
 }
