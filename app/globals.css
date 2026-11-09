@@ -45,7 +45,7 @@
   font-family: var(--font-display), 'Arial Narrow', ui-sans-serif, sans-serif;
 }
 
-  /* Bola do hero: cruza a rede uma única vez e fica na areia. Sem movimento, já nasce no fim do arco. */
+  /* Bola do hero: vai e volta por cima da rede sem parar (alternate). Sem movimento, fica parada no fim do arco. */
   .ball {
     offset-path: path('M90 246 C 330 -40, 870 -40, 1110 246');
     offset-rotate: 0deg;
@@ -53,7 +53,7 @@
   }
   @media (prefers-reduced-motion: no-preference) {
     .ball {
-      animation: ball-arc 2.2s cubic-bezier(0.45, 0.05, 0.4, 1) 0.9s backwards;
+      animation: ball-arc 2.4s cubic-bezier(0.45, 0.05, 0.4, 1) 0.9s infinite alternate both;
     }
   }
   @keyframes ball-arc {
