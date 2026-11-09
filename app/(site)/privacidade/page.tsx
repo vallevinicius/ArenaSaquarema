@@ -49,6 +49,7 @@ export default function PrivacidadePage() {
             <li><strong>Alunos:</strong> e-mail (cadastrado pela arena), senha (guardada embaralhada, nunca em texto), e a data de cada check-in de presença.</li>
             <li><strong>Equipe:</strong> nome, e-mail e o perfil de acesso ao sistema.</li>
             <li><strong>Clientes do bar:</strong> nome e telefone, para identificar a comanda, e o histórico de consumo.</li>
+            <li><strong>Quem entra por Wellhub ou TotalPass:</strong> nome, código na plataforma e horário do check-in, só para contar os acessos. Não guardamos CPF, e-mail nem telefone dessas pessoas.</li>
             <li><strong>Fotos do site:</strong> imagens publicadas pela arena. Antes de publicar, removemos a localização e demais dados escondidos da foto.</li>
           </ul>
         </Secao>

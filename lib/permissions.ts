@@ -63,6 +63,7 @@ export const AREAS: ReadonlyArray<{ to: string; need: Permission | 'ADMIN' }> = 
   { to: '/alunos', need: 'ALUNOS' },
   { to: '/presencas', need: 'PRESENCAS' },
   { to: '/mensalidades', need: 'MENSALIDADES' },
+  { to: '/parceiros', need: 'ADMIN' },
   { to: '/fotos', need: 'FOTOS' },
   { to: '/perfis', need: 'ADMIN' },
   { to: '/usuarios', need: 'ADMIN' },

@@ -37,6 +37,7 @@ const SECTIONS: Section[] = [
     { to: '/fotos', label: 'Fotos do site', icon: icon('M4 5h16v14H4zM4 15l4-4 4 4 3-3 5 5M9 9h.01') },
   ] },
   { title: 'Administração', items: [
+    { to: '/parceiros', label: 'Check-ins de parceiros', icon: icon('M8 7a3 3 0 106 0 3 3 0 00-6 0zM3 20v-1a5 5 0 015-5h2M16 11l2 2 4-4M14 20v-1a4 4 0 014-4') },
     { to: '/perfis', label: 'Perfis de acesso', icon: icon('M12 3l8 3v6c0 4.5-3.2 8-8 9-4.8-1-8-4.5-8-9V6zM9 12l2 2 4-4') },
     { to: '/usuarios', label: 'Usuários', icon: icon('M12 15a7 7 0 00-7 6h14a7 7 0 00-7-6zM12 12a4 4 0 100-8 4 4 0 000 8z') },
   ] },

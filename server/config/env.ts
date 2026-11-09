@@ -14,6 +14,14 @@ const envSchema = z.object({
   MAIL_FROM: z.string().min(3).default('Arena Saquarema <onboarding@resend.dev>'),
   // Pasta das fotos enviadas pelo admin (precisa ser disco persistente em produção).
   UPLOAD_DIR: z.string().min(1).default('uploads'),
+  // Integração TotalPass (docs: dev.totalpass.com). Tudo opcional: sem as chaves, a integração fica desligada e o lançamento manual segue valendo.
+  TOTALPASS_PARTNER_API_KEY: z.string().min(1).optional(),
+  TOTALPASS_PLACE_API_KEY: z.string().min(1).optional(),
+  TOTALPASS_API_URL: z.url().default('https://gym-service-api.totalpass.com'),
+  // Base da confirmação do check-in (sem barra final). Não há default: a TotalPass só documentou o host de testes.
+  TOTALPASS_VALIDATE_URL: z.url().optional(),
+  // Vai no caminho da URL do webhook (a TotalPass não assina as chamadas). Gere com: openssl rand -base64 36 | tr '+/' '-_'
+  TOTALPASS_WEBHOOK_SECRET: z.string().min(24).optional(),
   TRUST_PROXY: z.coerce.number().int().min(0).default(0),
 });
 
