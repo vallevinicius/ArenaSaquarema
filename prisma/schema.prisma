@@ -84,6 +84,7 @@ model User {
   dayUseSessionsClosed DayUseSession[]    @relation("DayUseSessionClosedBy")
   dayUseEntries        DayUseEntry[]
   checkIns             CheckIn[]
+  photos               Photo[]
   passwordResetCode    PasswordResetCode?
 
   @@map("users")
@@ -282,4 +283,23 @@ model CheckIn {
   @@unique([userId, date])
   @@index([date])
   @@map("check_ins")
+}
+
+// Fotos da galeria do site público, enviadas pelo admin. O arquivo fica em UPLOAD_DIR
+// (reencodado em WebP, sem EXIF/GPS); aqui só os metadados.
+model Photo {
+  id          Int      @id @default(autoincrement())
+  // Nome gerado no servidor (uuid.webp). Nunca vem do cliente.
+  file        String   @unique @db.VarChar(64)
+  alt         String   @default("") @db.VarChar(160)
+  width       Int
+  height      Int
+  bytes       Int
+  createdById Int
+  createdAt   DateTime @default(now())
+
+  createdBy User @relation(fields: [createdById], references: [id])
+
+  @@index([createdAt])
+  @@map("photos")
 }
