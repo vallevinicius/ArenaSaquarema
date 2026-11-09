@@ -45,11 +45,16 @@ App único Next.js 16 (App Router), front e API no mesmo processo/porta, no mesm
 - `profiles`: GET*, POST*, PATCH :id*, DELETE :id* (perfis de acesso; só ADMIN)
 - `users`: GET*, POST*, PATCH :id* (só equipe; alunos ficam em `students`)
 - `students`: GET*?month, POST* (só e-mail), PATCH :id* (nome, ativo, resetPassword)
-- `me`: POST check-in (ALUNO), GET attendance?month (ALUNO)
+- `me`: POST check-in (ALUNO), GET attendance?month (ALUNO), GET membership (ALUNO, só a própria)
+- `membership-plans`: GET*, POST*, PATCH :id* (planos de mensalidade; permissão `MENSALIDADES`)
+- `memberships`: GET?status&q* (situação dos alunos), PUT :userId/plan*, GET/POST :userId/payments*; `membership-payments`: POST :id/void*
 - `check-ins`: GET?date*, DELETE :id*
 - `photos`: GET*, POST* (multipart, reencode WebP), PATCH :id*, DELETE :id*, GET :id/file (público). Arquivos em `UPLOAD_DIR` (disco persistente em prod).
 - `health`, `docs.json` (públicos). Rota inexistente em /api → 404 JSON (`app/api/[...path]`).
 (* = exige a permissão da área ou ADMIN)
+
+## Mensalidades
+Aluno tem um `MembershipPlan` (2x, 5x, Wellhub, TotalPass...; `chargeable=false` = parceiro, nunca atrasa). Cada `MembershipPayment` vale 30 dias corridos contando o dia de início (pagou 09/11 -> até 08/12); pagar ANTES de vencer soma depois do período atual, pagar depois de vencer recomeça no dia do pagamento (`memberships.utils.ts`, `periodFor`). A situação é sempre calculada (`statusOf`), nunca gravada. Pagamento não se apaga: estorno marca `voidedAt` e deixa de contar. Registrar pagamento trava a linha do aluno (`FOR UPDATE`) e recusa duplicata (mesmo aluno+valor+forma em 60s). Valor livre (permite desconto); ainda não existe isenção.
 
 ## Auth
 Perfis: `ADMIN` (acesso total; único que gerencia usuários e perfis), `OPERADOR` (equipe, com um `Profile` de permissões por área criado pelo admin) e `ALUNO`. Permissões: catálogo em `lib/permissions.ts` (front e back usam o mesmo); `route({ permissions: [...] })` aceita quem tem UMA delas, e `AuthUser.permissions` é lido do banco a cada request (mudar o perfil vale na hora). Rota nova da equipe SEMPRE declara `permissions`/`roles`. `route()` sem `roles` é **só da equipe**: aluno nunca entra por omissão; rotas de aluno declaram `roles: ['ALUNO']`.
