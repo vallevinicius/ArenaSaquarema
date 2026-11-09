@@ -18,3 +18,4 @@ export const Unauthorized = (msg = 'Não autenticado') => new AppError(401, 'UNA
 export const Forbidden = (msg = 'Acesso negado') => new AppError(403, 'FORBIDDEN', msg);
 export const TooManyRequests = (retryAfterSec: number) =>
   new AppError(429, 'TOO_MANY_ATTEMPTS', 'Muitas tentativas. Tente novamente em alguns minutos.', { retryAfterSec });
+export const ServiceUnavailable = (msg = 'Serviço indisponível', code = 'SERVICE_UNAVAILABLE') => new AppError(503, code, msg);
