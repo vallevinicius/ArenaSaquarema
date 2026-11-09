@@ -62,6 +62,9 @@ Rate limit do login em memória (por processo); IP só com `TRUST_PROXY>=1`.
 `DATABASE_URL`, `DB_ALLOW_PUBLIC_KEY_RETRIEVAL` (só dev), `JWT_SECRET` (≥32), `JWT_EXPIRES_IN`, `SWAGGER_ENABLED`, `TRUST_PROXY`, `RESEND_API_KEY`, `MAIL_FROM`, `SEED_ADMIN_*`, `SITE_URL`, `CONTACT_WHATSAPP`, `CONTACT_ADDRESS`, `CONTACT_MAPS_URL`.
 Site público (`app/(site)`): é `force-dynamic` porque lê `SITE_URL`/contatos do `.env` em runtime (o build roda sem `.env`). Os contatos vêm de `lib/contato.ts` (campo vazio = elemento não aparece). `robots.ts`/`sitemap.ts` listam só o site público; página nova do site entra no `sitemap.ts`.
 
+## Operação
+`GET /api/health` (público) testa o banco com `SELECT 1`: 200 ok ou 503 `DB_UNAVAILABLE`. Backup e restauração: `npm run backup` e `scripts/restore.sh` (veja `docs/operacao.md`).
+
 ## Testes
 `npm test` (Vitest, `server/**/*.test.ts`): Prisma mockado com `vitest-mock-extended`, sem banco nem rede.
 

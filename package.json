@@ -18,7 +18,8 @@
     "db:studio": "prisma studio",
     "openapi:export": "tsx server/docs/export.ts",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "backup": "bash scripts/backup.sh"
   },
   "overrides": {
     "mariadb": "^3.5.4",
