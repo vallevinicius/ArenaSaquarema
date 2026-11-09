@@ -218,3 +218,22 @@ export type MembershipPayment = {
   voidReason: string | null;
 };
 export type MyMembership = { planName: string | null; status: MembershipStatus; validUntil: string | null; daysLeft: number | null };
+
+export type PartnerPlatform = 'WELLHUB' | 'TOTALPASS';
+export const PARTNER_PLATFORMS: Record<PartnerPlatform, { label: string; badge: string }> = {
+  WELLHUB: { label: 'Wellhub', badge: 'bg-sol-100 text-sol-700' },
+  TOTALPASS: { label: 'TotalPass', badge: 'bg-mar-100 text-mar-800' },
+};
+export type PartnerCheckIn = {
+  id: number;
+  platform: PartnerPlatform;
+  personName: string;
+  personCode: string | null;
+  checkedInAt: string;
+  status: 'PENDENTE' | 'VALIDADO' | 'EXPIRADO';
+  source: 'MANUAL' | 'API';
+  note: string | null;
+};
+export type PartnerCheckInList = Paginated<PartnerCheckIn> & { date: string; counts: { WELLHUB: number; TOTALPASS: number; pending: number } };
+export type PartnerSummary = { month: string; totals: { WELLHUB: number; TOTALPASS: number }; byDay: { date: string; WELLHUB: number; TOTALPASS: number }[] };
+export type PartnerIntegrationStatus = { totalpass: { credentials: boolean; receiving: boolean }; wellhub: { available: boolean; note: string } };
