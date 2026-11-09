@@ -74,3 +74,41 @@ describe('update', () => {
     expect(data.tokenVersion).toEqual({ increment: 1 });
   });
 });
+
+describe('nível e telefone', () => {
+  it('cria com nível e telefone e devolve no DTO', async () => {
+    prisma.user.create.mockResolvedValue(row({ level: 'INICIANTE_B', phone: '22999991234' }) as never);
+    const dto = await svc.create({ email: 'ana@x.com', level: 'INICIANTE_B', phone: '22999991234' });
+    expect(prisma.user.create.mock.calls[0]![0].data).toMatchObject({ level: 'INICIANTE_B', phone: '22999991234' });
+    expect(dto).toMatchObject({ level: 'INICIANTE_B', phone: '22999991234' });
+  });
+
+  it('sem nível/telefone: grava null e o DTO devolve null', async () => {
+    prisma.user.create.mockResolvedValue(row() as never);
+    const dto = await svc.create({ email: 'ana@x.com' });
+    expect(prisma.user.create.mock.calls[0]![0].data).toMatchObject({ level: null, phone: null });
+    expect(dto).toMatchObject({ level: null, phone: null });
+  });
+
+  it('editar troca o nível e o telefone, e remover manda null (sem revogar sessão)', async () => {
+    prisma.user.findFirst.mockResolvedValue({ id: 3 } as never);
+    prisma.user.update.mockResolvedValue(row() as never);
+    await svc.update(3, { level: 'AVANCADO', phone: '22999991234' });
+    await svc.update(3, { level: null, phone: null });
+    const [a, b] = prisma.user.update.mock.calls.map((c) => c[0].data as Record<string, unknown>);
+    expect(a).toMatchObject({ level: 'AVANCADO', phone: '22999991234' });
+    expect(b).toMatchObject({ level: null, phone: null });
+    expect(a).not.toHaveProperty('tokenVersion');
+  });
+
+  it('filtra a lista por nível e "NONE" busca quem não tem nível', async () => {
+    prisma.user.findMany.mockResolvedValue([] as never);
+    prisma.user.count.mockResolvedValue(0);
+    prisma.checkIn.findMany.mockResolvedValue([] as never);
+    (prisma.checkIn.groupBy as unknown as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+    await svc.list({ page: 1, pageSize: 20, month: '2026-11', level: 'INTERMEDIARIO' });
+    await svc.list({ page: 1, pageSize: 20, month: '2026-11', level: 'NONE' });
+    expect(prisma.user.findMany.mock.calls[0]![0]!.where).toMatchObject({ role: 'ALUNO', level: 'INTERMEDIARIO' });
+    expect(prisma.user.findMany.mock.calls[1]![0]!.where).toMatchObject({ role: 'ALUNO', level: null });
+  });
+});
