@@ -54,7 +54,8 @@ pnpm-debug.log*
 # Deploy
 .vercel
 
-# Dados locais (dump de banco, uploads)
+# Dados locais (dump de banco) e fotos enviadas pelo admin (UPLOAD_DIR)
+uploads/
 *.sql.gz
 *.dump
 !docker/mysql-init.sql
