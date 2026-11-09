@@ -5,8 +5,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { api } from '@/lib/api-client';
-import { todayLocal } from '@/lib/format';
-import type { MyAttendance } from '@/lib/types';
+import { todayLocal, ymdToBr } from '@/lib/format';
+import type { MyAttendance, MyMembership } from '@/lib/types';
 import { Emblem } from '@/components/Logo';
 import { useToast } from '@/components/Toast';
 import { ErrorBox, FormError, Spinner } from '@/components/ui';
@@ -32,6 +32,8 @@ export default function StudentPage() {
   const qc = useQueryClient();
   const [month, setMonth] = useState(thisMonth());
   const att = useQuery({ queryKey: ['me', 'attendance', month], queryFn: () => api.get<MyAttendance>('/me/attendance', { month }) });
+
+  const membership = useQuery({ queryKey: ['me', 'membership'], queryFn: () => api.get<MyMembership>('/me/membership') });
 
   const checkIn = useMutation({
     mutationFn: () => api.post('/me/check-in'),
@@ -65,6 +67,8 @@ export default function StudentPage() {
 
       <main className="mx-auto max-w-3xl space-y-6 px-5 pb-16">
         <h1 className="font-display text-5xl leading-[0.9] font-black text-mar-900 uppercase sm:text-7xl">Oi, {firstName}</h1>
+
+        {membership.data && <MembershipCard m={membership.data} />}
 
         {att.isPending ? (
           <Spinner />
@@ -133,5 +137,26 @@ export default function StudentPage() {
         )}
       </main>
     </>
+  );
+}
+
+/** Situação da mensalidade do próprio aluno. Sem plano definido, o cartão nem aparece. */
+function MembershipCard({ m }: { m: MyMembership }) {
+  if (m.status === 'SEM_PLANO') return null;
+  const until = m.validUntil ? ymdToBr(m.validUntil) : '';
+  const late = m.status === 'VENCIDO';
+  const [title, text] = {
+    PARCEIRO: [`Plano ${m.planName}`, 'Seu acesso é pelo parceiro, sem mensalidade na arena.'],
+    SEM_PAGAMENTO: ['Aguardando o 1º pagamento', `Plano ${m.planName}. Fale com a arena para acertar a mensalidade.`],
+    EM_DIA: ['Mensalidade em dia', `Plano ${m.planName}. Válida até ${until}.`],
+    VENCE_EM_BREVE: [m.daysLeft === 0 ? 'Sua mensalidade vence hoje' : `Sua mensalidade vence em ${m.daysLeft} dia(s)`, `Plano ${m.planName}. Válida até ${until}. Fale com a arena para renovar.`],
+    VENCIDO: ['Mensalidade vencida', `Plano ${m.planName}. Venceu em ${until}. Fale com a arena para renovar.`],
+    SEM_PLANO: ['', ''],
+  }[m.status];
+  return (
+    <section className={`p-5 sm:p-6 ${late ? 'bg-red-100 text-red-900' : 'bg-areia-50 text-mar-900'}`}>
+      <p className="font-display text-3xl leading-none font-black uppercase">{title}</p>
+      <p className="mt-2 font-medium">{text}</p>
+    </section>
   );
 }

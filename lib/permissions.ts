@@ -15,6 +15,7 @@ export const PERMISSION_KEYS = [
   'ESTOQUE',
   'ALUNOS',
   'PRESENCAS',
+  'MENSALIDADES',
   'FOTOS',
 ] as const;
 export type Permission = (typeof PERMISSION_KEYS)[number];
@@ -31,6 +32,7 @@ export const PERMISSION_INFO: Record<Permission, { label: string; description: s
   ESTOQUE: { label: 'Estoque', description: 'Ver e lançar entradas, saídas e ajustes' },
   ALUNOS: { label: 'Alunos', description: 'Cadastrar alunos, resetar senha e ver a presença' },
   PRESENCAS: { label: 'Presenças', description: 'Ver e remover check-ins dos alunos' },
+  MENSALIDADES: { label: 'Mensalidades', description: 'Escolher o plano do aluno, registrar e estornar pagamentos, ver quem está atrasado' },
   FOTOS: { label: 'Fotos do site', description: 'Enviar e excluir as fotos da galeria' },
 };
 
@@ -60,6 +62,7 @@ export const AREAS: ReadonlyArray<{ to: string; need: Permission | 'ADMIN' }> = 
   { to: '/day-use', need: 'DAY_USE' },
   { to: '/alunos', need: 'ALUNOS' },
   { to: '/presencas', need: 'PRESENCAS' },
+  { to: '/mensalidades', need: 'MENSALIDADES' },
   { to: '/fotos', need: 'FOTOS' },
   { to: '/perfis', need: 'ADMIN' },
   { to: '/usuarios', need: 'ADMIN' },

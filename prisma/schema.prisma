@@ -78,6 +78,13 @@ model User {
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 
+  // Mensalidade (só ALUNO): plano contratado e histórico de pagamentos.
+  membershipPlanId   Int?
+  membershipPlan     MembershipPlan?     @relation(fields: [membershipPlanId], references: [id], onDelete: Restrict)
+  membershipPayments MembershipPayment[] @relation("StudentPayments")
+  paymentsRegistered MembershipPayment[] @relation("PaymentRegisteredBy")
+  paymentsVoided     MembershipPayment[] @relation("PaymentVoidedBy")
+
   tabsOpened           Tab[]              @relation("TabOpenedBy")
   tabsClosed           Tab[]              @relation("TabClosedBy")
   tabItems             TabItem[]
@@ -91,6 +98,7 @@ model User {
   passwordResetCode    PasswordResetCode?
 
   @@index([profileId])
+  @@index([membershipPlanId])
   @@map("users")
 }
 
@@ -321,4 +329,50 @@ model Profile {
   users User[]
 
   @@map("profiles")
+}
+
+// Plano de mensalidade do aluno (2x, 5x, Wellhub, TotalPass...). Editável pelo admin.
+model MembershipPlan {
+  id         Int      @id @default(autoincrement())
+  name       String   @unique @db.VarChar(60)
+  price      Decimal  @db.Decimal(10, 2)
+  // false = aluno de parceiro (Wellhub/TotalPass): a arena não cobra dele, então nunca fica em atraso.
+  chargeable Boolean  @default(true)
+  active     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  students User[]
+  payments MembershipPayment[]
+
+  @@map("membership_plans")
+}
+
+// Cada pagamento vale 30 dias corridos (periodStart..periodEnd, ambos inclusive). Nunca é apagado:
+// o estorno só marca voidedAt, para o histórico bater com o caixa.
+model MembershipPayment {
+  id          Int           @id @default(autoincrement())
+  userId      Int
+  planId      Int
+  amount      Decimal       @db.Decimal(10, 2)
+  method      PaymentMethod
+  // Dia em que o dinheiro entrou (dia local da arena).
+  paidOn      DateTime      @db.Date
+  periodStart DateTime      @db.Date
+  periodEnd   DateTime      @db.Date
+  note        String?       @db.VarChar(200)
+  createdAt   DateTime      @default(now())
+  createdById Int
+  voidedAt    DateTime?
+  voidedById  Int?
+  voidReason  String?       @db.VarChar(200)
+
+  user         User           @relation("StudentPayments", fields: [userId], references: [id], onDelete: Restrict)
+  plan         MembershipPlan @relation(fields: [planId], references: [id], onDelete: Restrict)
+  registeredBy User           @relation("PaymentRegisteredBy", fields: [createdById], references: [id], onDelete: Restrict)
+  voidedBy     User?          @relation("PaymentVoidedBy", fields: [voidedById], references: [id], onDelete: Restrict)
+
+  @@index([userId, periodEnd])
+  @@index([paidOn])
+  @@map("membership_payments")
 }
