@@ -84,6 +84,7 @@ model User {
   membershipPayments MembershipPayment[] @relation("StudentPayments")
   paymentsRegistered MembershipPayment[] @relation("PaymentRegisteredBy")
   paymentsVoided     MembershipPayment[] @relation("PaymentVoidedBy")
+  partnerCheckIns    PartnerCheckIn[]    @relation("PartnerCheckInCreatedBy")
 
   tabsOpened           Tab[]              @relation("TabOpenedBy")
   tabsClosed           Tab[]              @relation("TabClosedBy")
@@ -375,4 +376,49 @@ model MembershipPayment {
   @@index([userId, periodEnd])
   @@index([paidOn])
   @@map("membership_payments")
+}
+
+enum PartnerPlatform {
+  WELLHUB
+  TOTALPASS
+}
+
+enum PartnerCheckInStatus {
+  PENDENTE // chegou da plataforma, ainda não confirmado (ou a confirmação falhou e dá para tentar de novo)
+  VALIDADO // confirmado na plataforma (ou lançado à mão): conta nos números
+  EXPIRADO // a plataforma recusou (tempo esgotado ou indisponível): não conta
+}
+
+enum PartnerCheckInSource {
+  MANUAL
+  API
+}
+
+// Check-in de quem veio por Wellhub/TotalPass. Fica separado de CheckIn (presença dos alunos) de propósito:
+// a contagem não se mistura com a taxa de presença. Só o admin enxerga. NÃO guarda CPF, e-mail nem telefone.
+model PartnerCheckIn {
+  id              Int                  @id @default(autoincrement())
+  platform        PartnerPlatform
+  // Identificador do evento na plataforma (token do check-in): impede gravar o mesmo duas vezes.
+  externalId      String?              @db.VarChar(255)
+  personName      String               @db.VarChar(120)
+  // Código da pessoa na plataforma (não é documento).
+  personCode      String?              @db.VarChar(60)
+  checkedInAt     DateTime
+  // Dia local da arena (America/Sao_Paulo), base da contagem diária.
+  day             DateTime             @db.Date
+  status          PartnerCheckInStatus @default(VALIDADO)
+  source          PartnerCheckInSource
+  // Token para confirmar na plataforma enquanto PENDENTE; apagado ao confirmar/expirar.
+  validationToken String?              @db.VarChar(255)
+  validatedAt     DateTime?
+  note            String?              @db.VarChar(200)
+  createdAt       DateTime             @default(now())
+  createdById     Int?
+
+  createdBy User? @relation("PartnerCheckInCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@unique([platform, externalId])
+  @@index([day, platform])
+  @@map("partner_check_ins")
 }
