@@ -30,6 +30,7 @@ describe('catálogo', () => {
   it('usuários e perfis são só do ADMIN (nenhum perfil consegue se promover)', () => {
     expect(AREAS.find((a) => a.to === '/usuarios')?.need).toBe('ADMIN');
     expect(AREAS.find((a) => a.to === '/perfis')?.need).toBe('ADMIN');
+    expect(AREAS.find((a) => a.to === '/parceiros')?.need).toBe('ADMIN'); // check-ins de parceiros: nomes só para o admin
     expect(PERMISSION_KEYS).not.toContain('USUARIOS');
     expect(PERMISSION_KEYS).not.toContain('PERFIS');
   });
