@@ -3,7 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState, type FormEvent } from 'react';
 import { api } from '@/lib/api-client';
-import type { Paginated, User } from '@/lib/types';
+import type { Paginated, Profile, User } from '@/lib/types';
 import { Modal } from '@/components/Modal';
 import { useToast } from '@/components/Toast';
 import { Empty, ErrorBox, Field, FormError, PageHeader, Pagination, Select, Spinner, fieldErrors } from '@/components/ui';
@@ -31,7 +31,7 @@ export default function UsersPage() {
                   <tr key={u.id} className={u.active ? '' : 'opacity-50'}>
                     <td className="font-semibold text-mar-900">{u.name}</td>
                     <td>{u.email}</td>
-                    <td><span className={`badge ${u.role === 'ADMIN' ? 'bg-sol-100 text-sol-700' : 'bg-mar-100 text-mar-800'}`}>{u.role === 'ADMIN' ? 'Admin' : 'Operador'}</span></td>
+                    <td><span className={`badge ${u.role === 'ADMIN' ? 'bg-sol-100 text-sol-700' : 'bg-mar-100 text-mar-800'}`}>{u.role === 'ADMIN' ? 'Administrador' : (u.profile?.name ?? 'Sem perfil')}</span></td>
                     <td>{u.active ? 'Ativo' : 'Inativo'}</td>
                     <td className="text-right"><button className="btn-ghost py-1" onClick={() => setEditing(u)}>Editar</button></td>
                   </tr>
@@ -54,6 +54,9 @@ function UserForm({ target, onDone }: { target?: User; onDone: () => void }) {
   const qc = useQueryClient();
   const toast = useToast();
   const isSelf = target?.id === me?.id;
+  const profiles = useQuery({ queryKey: ['profiles'], queryFn: () => api.get<Profile[]>('/profiles') });
+  // Um único campo: 'ADMIN' ou o id do perfil de acesso da equipe.
+  const current = target ? (target.role === 'ADMIN' ? 'ADMIN' : String(target.profile?.id ?? '')) : '';
   const m = useMutation({
     mutationFn: (body: object) => (target ? api.patch(`/users/${target.id}`, body) : api.post('/users', body)),
     onSuccess: () => {
@@ -70,7 +73,11 @@ function UserForm({ target, onDone }: { target?: User; onDone: () => void }) {
     const password = String(f.get('password') ?? '');
     const body: Record<string, unknown> = { name: String(f.get('name')).trim() };
     // Select desabilitado não entra no FormData; o backend também bloqueia auto-rebaixamento.
-    if (!isSelf) body.role = f.get('role');
+    const perfil = String(f.get('perfil') ?? '');
+    if (!isSelf && perfil) {
+      if (perfil === 'ADMIN') body.role = 'ADMIN';
+      else Object.assign(body, { role: 'OPERADOR', profileId: Number(perfil) });
+    }
     if (target) {
       if (!isSelf) body.active = f.get('active') === 'on';
       if (password) body.password = password;
@@ -85,10 +92,14 @@ function UserForm({ target, onDone }: { target?: User; onDone: () => void }) {
     <form onSubmit={onSubmit} className="space-y-4">
       <Field label="Nome" name="name" required minLength={2} maxLength={120} defaultValue={target?.name} error={fe.name} />
       {!target && <Field label="E-mail" name="email" type="email" required maxLength={160} error={fe.email} />}
-      <Select label="Perfil" name="role" defaultValue={target?.role ?? 'OPERADOR'} disabled={isSelf}>
-        <option value="OPERADOR">Operador (caixa: comandas e clientes)</option>
-        <option value="ADMIN">Administrador (tudo)</option>
+      <Select label="Perfil de acesso" name="perfil" required defaultValue={current} disabled={isSelf || profiles.isPending}>
+        <option value="" disabled>Escolha um perfil</option>
+        <option value="ADMIN">Administrador (acesso total, gerencia usuários e perfis)</option>
+        {profiles.data?.map((p) => (
+          <option key={p.id} value={p.id}>{p.name}</option>
+        ))}
       </Select>
+      {profiles.data?.length === 0 && <p className="text-xs text-slate-500">Ainda não há perfis da equipe. Crie em “Perfis de acesso”.</p>}
       <Field
         label={target ? 'Nova senha (deixe vazio para manter)' : 'Senha'}
         name="password" type="password" autoComplete="new-password"

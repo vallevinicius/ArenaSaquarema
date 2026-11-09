@@ -14,9 +14,6 @@ export const AULAS = [
   { hora: '21h às 22h', nivel: 'Avançado', desc: 'Jogo intenso, estratégia e alto rendimento.', cor: 'bg-sol-400' },
 ];
 
-/** Fotos da galeria: coloque os arquivos em public/fotos/ e liste aqui (a seção só aparece se houver fotos). */
-export const FOTOS: { src: string; alt: string }[] = [];
-
 export const PARCEIROS = ['Wellhub', 'TotalPass'];
 export const INSTAGRAM = { user: '@arena_saquarema', url: 'https://www.instagram.com/arena_saquarema/' };
 

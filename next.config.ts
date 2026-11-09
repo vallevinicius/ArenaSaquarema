@@ -22,7 +22,7 @@ const csp = [
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   // Pacotes com binário nativo/worker ou pool de conexões ficam fora do bundle.
-  serverExternalPackages: ['@prisma/adapter-mariadb', 'mariadb', 'pino', 'bcryptjs'],
+  serverExternalPackages: ['@prisma/adapter-mariadb', 'mariadb', 'pino', 'bcryptjs', 'sharp'],
   async headers() {
     return [
       {
@@ -38,7 +38,8 @@ const nextConfig: NextConfig = {
       },
       {
         // Respostas da API nunca em cache (dados de caixa/estoque mudam a todo momento).
-        source: '/api/:path*',
+        // Exceção: o arquivo de uma foto (id -> conteúdo imutável) define o próprio cache na rota.
+        source: '/api/:path((?!photos/\\d+/file$).*)',
         headers: [{ key: 'Cache-Control', value: 'no-store' }],
       },
     ];

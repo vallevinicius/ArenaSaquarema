@@ -42,15 +42,17 @@ App único Next.js 16 (App Router), front e API no mesmo processo/porta, no mesm
 - `day-use-sessions`: GET, GET current, GET :id, POST (abre o caixa do dia), POST :id/entries (check-in de pagamento), DELETE :id/entries/:entryId, POST :id/close
 - `tabs`: GET, GET :id, POST, POST :id/items, DELETE :id/items/:itemId, POST :id/close, POST :id/cancel*
 - `dashboard`: GET?from&to*
+- `profiles`: GET*, POST*, PATCH :id*, DELETE :id* (perfis de acesso; só ADMIN)
 - `users`: GET*, POST*, PATCH :id* (só equipe; alunos ficam em `students`)
 - `students`: GET*?month, POST* (só e-mail), PATCH :id* (nome, ativo, resetPassword)
 - `me`: POST check-in (ALUNO), GET attendance?month (ALUNO)
 - `check-ins`: GET?date*, DELETE :id*
+- `photos`: GET*, POST* (multipart, reencode WebP), PATCH :id*, DELETE :id*, GET :id/file (público). Arquivos em `UPLOAD_DIR` (disco persistente em prod).
 - `health`, `docs.json` (públicos). Rota inexistente em /api → 404 JSON (`app/api/[...path]`).
-(* = ADMIN)
+(* = exige a permissão da área ou ADMIN)
 
 ## Auth
-Perfis: `ADMIN`, `OPERADOR` (equipe) e `ALUNO`. `route()` sem `roles` é **só da equipe**: aluno nunca entra por omissão; rotas de aluno declaram `roles: ['ALUNO']`.
+Perfis: `ADMIN` (acesso total; único que gerencia usuários e perfis), `OPERADOR` (equipe, com um `Profile` de permissões por área criado pelo admin) e `ALUNO`. Permissões: catálogo em `lib/permissions.ts` (front e back usam o mesmo); `route({ permissions: [...] })` aceita quem tem UMA delas, e `AuthUser.permissions` é lido do banco a cada request (mudar o perfil vale na hora). Rota nova da equipe SEMPRE declara `permissions`/`roles`. `route()` sem `roles` é **só da equipe**: aluno nunca entra por omissão; rotas de aluno declaram `roles: ['ALUNO']`.
 Aluno: admin cadastra só o e-mail (`POST /students`), senha padrão `mudar123` + `mustChangePassword`. Login com a senha padrão NÃO abre sessão: responde 202, envia código de 6 dígitos por e-mail (Resend, `server/lib/mail.ts`) e o front chama `POST /auth/password-reset`. Código: HMAC no banco, 10 min, 5 tentativas, uso único.
 Presença: `CheckIn` (1 por aluno/dia, dia local da arena). Taxa = dias do aluno ÷ dias do mês com ao menos um check-in (regra em `attendance.utils.ts`).
 JWT HS256 em cookie `arena_token` (httpOnly, SameSite=Strict, Secure em prod, path `/`). `tokenVersion` no usuário revoga sessões.

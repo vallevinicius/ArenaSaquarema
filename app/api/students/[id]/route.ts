@@ -3,6 +3,6 @@ import { route } from '@/server/lib/route';
 import { UpdateStudentInput } from '@/server/modules/students/students.schemas';
 import * as service from '@/server/modules/students/students.service';
 
-export const PATCH = route({ roles: ['ADMIN'], params: IdParam, body: UpdateStudentInput }, ({ params, body }) =>
+export const PATCH = route({ permissions: ['ALUNOS'], params: IdParam, body: UpdateStudentInput }, ({ params, body }) =>
   service.update(params.id, body),
 );

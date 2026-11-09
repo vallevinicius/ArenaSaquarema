@@ -1,9 +1,23 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { Emblem } from '@/components/Logo';
-import { Degraus, FOTOS, INSTAGRAM, IconInstagram, PARCEIROS, PLANOS, Quadra, d } from '@/components/site';
+import * as photosService from '@/server/modules/photos/photos.service';
+import { Degraus, INSTAGRAM, IconInstagram, PARCEIROS, PLANOS, Quadra, d } from '@/components/site';
 
-export default function HomePage() {
+// A galeria vem do banco (fotos enviadas pelo admin): a página é renderizada a cada acesso,
+// o que também mantém o `next build` sem depender de banco/.env.
+export const dynamic = 'force-dynamic';
+
+async function loadPhotos() {
+  try {
+    return await photosService.list();
+  } catch {
+    return []; // banco fora do ar: o site continua de pé, só sem a galeria
+  }
+}
+
+export default async function HomePage() {
+  const fotos = await loadPhotos();
   return (
     <>
       {/* Hero: a quadra. O título acompanha o arco da bola e ela cruza a rede ao carregar. */}
@@ -48,15 +62,15 @@ export default function HomePage() {
         <div className="h-20 bg-mar-950" />
       </section>
 
-      {/* Galeria (aparece quando houver fotos em public/fotos) */}
-      {FOTOS.length > 0 && (
+      {/* Galeria (aparece quando o admin enviar fotos em "Fotos do site") */}
+      {fotos.length > 0 && (
         <section className="bg-mar-950 pb-20">
           <div className="mx-auto max-w-6xl px-5">
             <h2 className="font-display text-5xl font-black text-white uppercase sm:text-7xl">Vida na Arena</h2>
             <ul className="mt-10 grid grid-cols-2 gap-3 md:grid-cols-3">
-              {FOTOS.map((f, i) => (
-                <li key={f.src} className={`relative overflow-hidden ${i % 5 === 0 ? 'row-span-2 aspect-[3/4]' : 'aspect-square'}`}>
-                  <Image src={f.src} alt={f.alt} fill sizes="(min-width: 768px) 33vw, 50vw" className="object-cover transition duration-500 hover:scale-105" />
+              {fotos.map((f, i) => (
+                <li key={f.id} className={`relative overflow-hidden ${i % 5 === 0 ? 'row-span-2 aspect-[3/4]' : 'aspect-square'}`}>
+                  <Image src={f.url} alt={f.alt} unoptimized fill sizes="(min-width: 768px) 33vw, 50vw" className="object-cover transition duration-500 hover:scale-105" />
                 </li>
               ))}
             </ul>

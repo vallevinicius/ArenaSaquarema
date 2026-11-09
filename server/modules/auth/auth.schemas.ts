@@ -1,4 +1,5 @@
 import { registry, z } from '../../docs/registry';
+import { PERMISSION_KEYS } from '../../../lib/permissions';
 
 // bcrypt trunca silenciosamente acima de 72 bytes: limitar evita falsa sensação de segurança.
 export const Password = z.string().min(10, 'Mínimo 10 caracteres').max(72, 'Máximo 72 caracteres');
@@ -24,6 +25,7 @@ export const UserDTO = registry.register(
     name: z.string(),
     email: z.string(),
     role: z.enum(['ADMIN', 'OPERADOR', 'ALUNO']),
+    profile: z.object({ id: z.number(), name: z.string() }).nullable().openapi({ description: 'Perfil de acesso (só equipe não administradora)' }),
     active: z.boolean(),
     createdAt: z.string(),
   }),
@@ -31,7 +33,13 @@ export const UserDTO = registry.register(
 
 export const MeDTO = registry.register(
   'Me',
-  z.object({ id: z.number(), name: z.string(), email: z.string(), role: z.enum(['ADMIN', 'OPERADOR', 'ALUNO']) }),
+  z.object({
+    id: z.number(),
+    name: z.string(),
+    email: z.string(),
+    role: z.enum(['ADMIN', 'OPERADOR', 'ALUNO']),
+    permissions: z.array(z.enum(PERMISSION_KEYS)).openapi({ description: 'Áreas liberadas (ADMIN: todas; aluno: nenhuma)' }),
+  }),
 );
 
 /** Senha provisória de todo aluno novo. Nunca vira sessão sozinha: o 1º login exige o código por e-mail. */

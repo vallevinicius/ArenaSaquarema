@@ -13,6 +13,8 @@ import '../modules/dashboard/dashboard.openapi';
 import '../modules/users/users.openapi';
 import '../modules/students/students.openapi';
 import '../modules/attendance/attendance.openapi';
+import '../modules/photos/photos.openapi';
+import '../modules/profiles/profiles.openapi';
 
 let cached: ReturnType<OpenApiGeneratorV31['generateDocument']> | null = null;
 
@@ -39,6 +41,8 @@ export function buildOpenApiDocument() {
       { name: 'Usuários' },
       { name: 'Alunos' },
       { name: 'Presença' },
+      { name: 'Fotos' },
+      { name: 'Perfis' },
     ],
   }));
 }

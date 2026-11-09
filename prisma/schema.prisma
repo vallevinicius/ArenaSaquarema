@@ -71,6 +71,8 @@ model User {
   active             Boolean  @default(true)
   // true enquanto o aluno usa a senha padrão: o login só vira sessão depois de confirmar o código enviado por e-mail.
   mustChangePassword Boolean  @default(false)
+  // Perfil de acesso da equipe (OPERADOR). ADMIN tem acesso total e não usa perfil; ALUNO também não.
+  profileId          Int?
   // Incrementado em troca de senha/desativação: invalida JWTs emitidos antes.
   tokenVersion       Int      @default(0)
   createdAt          DateTime @default(now())
@@ -84,8 +86,11 @@ model User {
   dayUseSessionsClosed DayUseSession[]    @relation("DayUseSessionClosedBy")
   dayUseEntries        DayUseEntry[]
   checkIns             CheckIn[]
+  photos               Photo[]
+  profile              Profile?           @relation(fields: [profileId], references: [id], onDelete: Restrict)
   passwordResetCode    PasswordResetCode?
 
+  @@index([profileId])
   @@map("users")
 }
 
@@ -282,4 +287,38 @@ model CheckIn {
   @@unique([userId, date])
   @@index([date])
   @@map("check_ins")
+}
+
+// Fotos da galeria do site público, enviadas pelo admin. O arquivo fica em UPLOAD_DIR
+// (reencodado em WebP, sem EXIF/GPS); aqui só os metadados.
+model Photo {
+  id          Int      @id @default(autoincrement())
+  // Nome gerado no servidor (uuid.webp). Nunca vem do cliente.
+  file        String   @unique @db.VarChar(64)
+  alt         String   @default("") @db.VarChar(160)
+  width       Int
+  height      Int
+  bytes       Int
+  createdById Int
+  createdAt   DateTime @default(now())
+
+  createdBy User @relation(fields: [createdById], references: [id])
+
+  @@index([createdAt])
+  @@map("photos")
+}
+
+// Perfil de acesso da equipe, criado pelo admin: um nome e um conjunto de permissões por área
+// (chaves em lib/permissions.ts). Guardado como JSON: adicionar uma área nova não exige migration.
+model Profile {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique @db.VarChar(60)
+  description String?  @db.VarChar(160)
+  permissions Json
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  users User[]
+
+  @@map("profiles")
 }

@@ -1,9 +1,13 @@
+import type { Permission } from '@/lib/permissions';
+
 // Espelha os DTOs do backend (ver /api/docs.json). Dinheiro chega como string "12.50".
 export type Role = 'ADMIN' | 'OPERADOR' | 'ALUNO';
 export type Paginated<T> = { data: T[]; meta: { page: number; pageSize: number; total: number } };
 
-export type Me = { id: number; name: string; email: string; role: Role };
-export type User = Me & { active: boolean; createdAt: string };
+export type Me = { id: number; name: string; email: string; role: Role; permissions: Permission[] };
+export type User = Omit<Me, 'permissions'> & { active: boolean; createdAt: string; profile: { id: number; name: string } | null };
+
+export type Profile = { id: number; name: string; description: string | null; permissions: Permission[]; usersCount: number };
 
 /** Login de aluno com senha provisória: sem sessão ainda, falta confirmar o código enviado por e-mail. */
 export type PasswordResetRequired = { passwordResetRequired: true; email: string };
@@ -177,3 +181,5 @@ export type Dashboard = {
   dailyRevenue: { date: string; total: string }[];
   lowStock: { id: number; name: string; stock: number; minStock: number }[];
 };
+
+export type Photo = { id: number; alt: string; url: string; width: number; height: number; createdAt: string };

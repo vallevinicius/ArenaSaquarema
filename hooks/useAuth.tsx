@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { createContext, useContext, useEffect, type ReactNode } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { ApiError, api, setUnauthorizedHandler } from '@/lib/api-client';
+import { canAccessPath } from '@/lib/permissions';
 import type { Me, PasswordResetRequired } from '@/lib/types';
 import { Spinner } from '@/components/ui';
 
@@ -79,8 +80,6 @@ export function useAuth() {
   return ctx;
 }
 
-const ADMIN_ONLY = ['/dashboard', '/estoque', '/usuarios', '/alunos', '/presencas'];
-
 /** Para onde cada perfil vai depois de entrar. */
 export const homeFor = (role: Me['role']) => (role === 'ALUNO' ? '/aluno' : '/painel');
 
@@ -93,13 +92,14 @@ export function RequireAuth({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const isStudent = user?.role === 'ALUNO';
-  const forbidden = !!user && !isStudent && user.role !== 'ADMIN' && ADMIN_ONLY.some((p) => pathname.startsWith(p));
+  // Cada área exige uma permissão do perfil (ver AREAS em lib/permissions). A API confere de novo.
+  const forbidden = !!user && !isStudent && !canAccessPath(user, pathname);
 
   useEffect(() => {
     if (loading) return;
     if (!user) router.replace(`/login?from=${encodeURIComponent(pathname)}`);
     else if (isStudent) router.replace('/aluno'); // aluno nunca vê as telas da equipe
-    else if (forbidden) router.replace('/comandas');
+    else if (forbidden) router.replace('/painel'); // o painel escolhe a primeira área liberada
   }, [loading, user, isStudent, forbidden, pathname, router]);
 
   if (loading || !user || isStudent || forbidden) return <Spinner />;

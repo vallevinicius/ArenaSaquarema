@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs';
 import { createHmac, randomInt, timingSafeEqual } from 'node:crypto';
 import { env } from '../../config/env';
+import type { Permission } from '../../../lib/permissions';
 import { BadRequest } from '../../lib/errors';
 import { sendMail } from '../../lib/mail';
 import { prisma } from '../../lib/prisma';
@@ -87,6 +88,6 @@ export async function confirm(identifier: string, code: string, newPassword: str
 
   return {
     token: signToken(updated.id, updated.tokenVersion),
-    user: { id: updated.id, name: updated.name, email: updated.email, role: updated.role },
+    user: { id: updated.id, name: updated.name, email: updated.email, role: updated.role, permissions: [] as Permission[] }, // só aluno passa por aqui
   };
 }

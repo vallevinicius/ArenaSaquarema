@@ -12,6 +12,8 @@ const envSchema = z.object({
   // E-mail transacional (Resend). Sem chave: em dev o código aparece no log; em produção o envio falha.
   RESEND_API_KEY: z.string().min(1).optional(),
   MAIL_FROM: z.string().min(3).default('Arena Saquarema <onboarding@resend.dev>'),
+  // Pasta das fotos enviadas pelo admin (precisa ser disco persistente em produção).
+  UPLOAD_DIR: z.string().min(1).default('uploads'),
   TRUST_PROXY: z.coerce.number().int().min(0).default(0),
 });
 

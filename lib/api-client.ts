@@ -35,14 +35,16 @@ export const setUnauthorizedHandler = (fn: () => void) => {
 };
 
 async function request<T>(method: string, path: string, opts: { body?: unknown; query?: Query } = {}): Promise<T> {
+  // FormData: o navegador define o Content-Type com o boundary; JSON é serializado aqui.
+  const isForm = typeof FormData !== 'undefined' && opts.body instanceof FormData;
   let res: Response;
   try {
     res = await fetch(buildUrl(path, opts.query), {
       method,
       // same-origin: o cookie httpOnly vai junto; token nunca fica acessível ao JS.
       credentials: 'same-origin',
-      headers: opts.body !== undefined ? { 'Content-Type': 'application/json' } : undefined,
-      body: opts.body !== undefined ? JSON.stringify(opts.body) : undefined,
+      headers: opts.body !== undefined && !isForm ? { 'Content-Type': 'application/json' } : undefined,
+      body: opts.body === undefined ? undefined : isForm ? (opts.body as FormData) : JSON.stringify(opts.body),
     });
   } catch {
     throw new ApiError(0, 'NETWORK_ERROR', 'Sem conexão com o servidor');
@@ -64,5 +66,6 @@ export const api = {
   get: <T>(path: string, query?: Query) => request<T>('GET', path, { query }),
   post: <T>(path: string, body?: unknown) => request<T>('POST', path, { body: body ?? {} }),
   patch: <T>(path: string, body: unknown) => request<T>('PATCH', path, { body }),
+  upload: <T>(path: string, form: FormData) => request<T>('POST', path, { body: form }),
   delete: <T>(path: string) => request<T>('DELETE', path),
 };

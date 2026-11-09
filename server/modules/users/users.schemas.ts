@@ -10,7 +10,8 @@ export const CreateUserInput = registry.register(
     email: z.email().max(160).transform((v) => v.toLowerCase().trim()),
     password: Password,
     role: Role.default('OPERADOR'),
-  }),
+    profileId: z.number().int().positive().optional().openapi({ description: 'Obrigatório quando role = OPERADOR; ignorado para ADMIN' }),
+  }).refine((v) => v.role === 'ADMIN' || v.profileId !== undefined, { message: 'Escolha um perfil de acesso', path: ['profileId'] }),
 );
 
 export const UpdateUserInput = registry.register(
@@ -19,6 +20,7 @@ export const UpdateUserInput = registry.register(
     .object({
       name: z.string().trim().min(2).max(120),
       role: Role,
+      profileId: z.number().int().positive(),
       active: z.boolean(),
       password: Password.openapi({ description: 'Reset de senha pelo admin' }),
     })
