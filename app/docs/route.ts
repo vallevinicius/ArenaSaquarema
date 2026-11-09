@@ -8,7 +8,7 @@ const HTML = `<!doctype html>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Arena Saquarema API · Swagger</title>
-    <link rel="icon" href="/favicon.svg" />
+    <link rel="icon" href="/icon.png" />
     <link rel="stylesheet" href="/docs/swagger-ui.css" />
   </head>
   <body>

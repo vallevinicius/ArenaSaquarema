@@ -6,7 +6,7 @@ import './globals.css';
 export const metadata: Metadata = {
   title: 'Arena Saquarema',
   description: 'Bar, comandas e day use da Arena Saquarema',
-  icons: { icon: '/favicon.svg' },
+  icons: { icon: [{ url: '/favicon.ico' }, { url: '/icon.png', type: 'image/png' }], apple: '/apple-icon.png' },
 };
 
 export const viewport: Viewport = { themeColor: '#0b3a82' };
