@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { canAccessPath } from '@/lib/permissions';
 import { useAuth } from '@/hooks/useAuth';
 import { IconBeer, IconSun } from '@/components/icons';
@@ -46,6 +46,24 @@ export function Shell({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+
+  // No celular a tabela vira uma lista de cartões (CSS em globals.css): cada célula ganha o nome da coluna.
+  useEffect(() => {
+    const label = () => {
+      document.querySelectorAll<HTMLTableElement>('table.table').forEach((t) => {
+        const heads = Array.from(t.querySelectorAll('thead th'), (th) => th.textContent?.trim() ?? '');
+        t.querySelectorAll('tbody tr').forEach((tr) =>
+          Array.from(tr.children).forEach((td, i) => {
+            if (td instanceof HTMLElement && td.dataset.label !== (heads[i] ?? '')) td.dataset.label = heads[i] ?? '';
+          }),
+        );
+      });
+    };
+    label();
+    const obs = new MutationObserver(label);
+    obs.observe(document.body, { childList: true, subtree: true });
+    return () => obs.disconnect();
+  }, []);
   const sections = SECTIONS.map((sec) => ({
     ...sec,
     items: sec.items.filter((i) => !!user && canAccessPath(user, i.to)),

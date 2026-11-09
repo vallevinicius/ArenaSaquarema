@@ -34,6 +34,17 @@
 @layer base {
   html {
     @apply bg-white text-slate-800 antialiased;
+    -webkit-text-size-adjust: 100%;
+  }
+  /* Sem arrasto/balanço lateral no celular: nada fora da tela pode virar rolagem horizontal. */
+  html {
+    overflow-x: hidden; /* iOS antigo não conhece "clip"; no html o "hidden" não quebra o sticky */
+  }
+  html,
+  body {
+    overflow-x: clip;
+    overscroll-behavior-x: none;
+    touch-action: pan-y pinch-zoom; /* o dedo só rola na vertical; o zoom por pinça continua */
   }
   :focus-visible {
     @apply outline-2 outline-offset-2 outline-sol-400;
@@ -90,7 +101,7 @@
 }
 
 @utility input {
-  @apply w-full rounded-lg border border-slate-300/80 bg-white/70 px-3 py-2 text-sm
+  @apply w-full rounded-lg border border-slate-300/80 bg-white/70 px-3 py-2 text-base sm:text-sm
     placeholder:text-slate-400 focus:border-mar-500 focus:outline-none focus:ring-2 focus:ring-mar-200
     user-invalid:border-red-500 user-invalid:bg-red-50;
 }
@@ -205,12 +216,20 @@ dialog::backdrop {
 
 /* Área de conteúdo: fundo claro em degradê com orbes de cor; os cards são vidro fosco sobre ele. */
 .app-backdrop {
+  position: relative;
+  isolation: isolate;
+}
+.app-backdrop::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
   background:
     radial-gradient(45% 35% at 90% 0%, rgb(250 204 21 / 0.28), transparent 70%),
     radial-gradient(50% 40% at 10% 100%, rgb(88 150 253 / 0.32), transparent 70%),
     radial-gradient(40% 30% at 55% 45%, rgb(190 214 255 / 0.5), transparent 70%),
     linear-gradient(160deg, #f4f8ff 0%, #e6efff 50%, #f7f1df 100%);
-  background-attachment: fixed;
 }
 @utility glass-card {
   background: linear-gradient(150deg, rgb(255 255 255 / 0.72), rgb(255 255 255 / 0.42));
@@ -220,4 +239,45 @@ dialog::backdrop {
   box-shadow:
     inset 0 1px 0 rgb(255 255 255 / 0.9),
     0 10px 30px -12px rgb(11 58 130 / 0.25);
+}
+
+/* Tabelas no celular: cada linha vira um cartão, com o nome da coluna ao lado do valor. */
+@media (max-width: 639px) {
+  .table thead {
+    display: none;
+  }
+  .table,
+  .table tbody,
+  .table tr,
+  .table td {
+    display: block;
+    width: 100%;
+  }
+  .table tbody tr {
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid rgb(255 255 255 / 0.7);
+  }
+  .table tbody td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    border: 0;
+    padding: 0.3rem 0;
+    text-align: right;
+  }
+  .table tbody td::before {
+    content: attr(data-label);
+    flex-shrink: 0;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-align: left;
+    color: var(--color-mar-900);
+  }
+  .table tbody td[data-label='']::before {
+    display: none;
+  }
+  .table tbody td[data-label=''] {
+    justify-content: flex-end;
+  }
 }
