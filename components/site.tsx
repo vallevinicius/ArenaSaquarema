@@ -2,6 +2,7 @@ import Link from 'next/link';
 import type { CSSProperties } from 'react';
 import { Emblem } from '@/components/Logo';
 import { SiteMenu } from '@/components/SiteMenu';
+import { address, mapsUrl, whatsappLink } from '@/lib/contato';
 
 export const PLANOS = [
   { nome: '2x na semana', preco: 130, destaque: false, extra: 'Ideal para começar e manter o ritmo' },
@@ -102,7 +103,30 @@ export function SiteHeader() {
   );
 }
 
+export function WhatsAppButton() {
+  const href = whatsappLink();
+  if (!href) return null;
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label="Falar com a arena no WhatsApp"
+      className="fixed right-4 bottom-[max(1rem,env(safe-area-inset-bottom))] z-30 inline-flex items-center gap-2 rounded-full bg-[#25d366] px-4 py-3 font-extrabold text-white shadow-lg transition hover:brightness-95 sm:right-6 sm:bottom-6"
+    >
+      <svg viewBox="0 0 24 24" className="size-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <path d="M21 12a8.5 8.5 0 01-12.3 7.6L3 21l1.5-5.4A8.5 8.5 0 1121 12z" />
+        <path d="M9 9.5c0 3 2.500 5.500 5.500 5.500l1-1.500-2-1-.8.800c-.8-.4-1.600-1.200-2-2l.8-.8-1-2z" fill="currentColor" stroke="none" />
+      </svg>
+      <span className="hidden sm:inline">WhatsApp</span>
+    </a>
+  );
+}
+
 export function SiteFooter() {
+  const wa = whatsappLink();
+  const end = address();
+  const mapa = mapsUrl();
   return (
       <footer className="bg-mar-950 text-mar-200">
         <div className="mx-auto grid max-w-6xl gap-10 px-5 py-14 sm:grid-cols-2 lg:grid-cols-4">
@@ -143,13 +167,24 @@ export function SiteFooter() {
                   <IconInstagram /> {INSTAGRAM.user}
                 </a>
               </li>
-              <li>Saquarema · RJ</li>
+              {wa && (
+                <li>
+                  <a href={wa} target="_blank" rel="noopener noreferrer" className="hover:text-white">WhatsApp</a>
+                </li>
+              )}
+              <li>{end ?? 'Saquarema · RJ'}</li>
+              {mapa && (
+                <li>
+                  <a href={mapa} target="_blank" rel="noopener noreferrer" className="hover:text-white">Como chegar</a>
+                </li>
+              )}
               <li className="text-mar-300">Aceitamos {PARCEIROS.join(' e ')}</li>
             </ul>
           </div>
         </div>
         <div className="border-t border-mar-800 px-5 py-5 text-center text-xs text-mar-300">
-          © {new Date().getFullYear()} Arena Saquarema. Todos os direitos reservados.
+          © {new Date().getFullYear()} Arena Saquarema. Todos os direitos reservados. ·{' '}
+          <Link href="/privacidade" className="underline hover:text-white">Privacidade</Link>
         </div>
       </footer>
   );
