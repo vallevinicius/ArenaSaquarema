@@ -2,7 +2,7 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState, type CSSProperties, type FormEvent } from 'react';
-import { Logo } from '@/components/Shell';
+import { Emblem, Logo } from '@/components/Logo';
 import { Field, FormError } from '@/components/ui';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -17,7 +17,7 @@ export default function LoginPage() {
 
 /** Só aceita caminho interno (evita open redirect via ?from=https://site-malicioso). */
 function safeFrom(v: string | null) {
-  return v && v.startsWith('/') && !v.startsWith('//') && v !== '/login' ? v : '/';
+  return v && v.startsWith('/') && !v.startsWith('//') && v !== '/login' ? v : '/painel';
 }
 
 function LoginForm() {
@@ -69,6 +69,10 @@ function LoginForm() {
           <Logo />
         </div>
         <div className="relative z-10 max-w-md">
+          <div className="animate-bloom relative mb-8 w-fit" style={{ '--delay': '150ms' } as CSSProperties}>
+            <div className="absolute -inset-6 rounded-full bg-sol-400/25 blur-2xl" aria-hidden="true" />
+            <Emblem size={176} className="animate-float relative ring-4" />
+          </div>
           <h1 className="animate-rise text-4xl leading-tight font-black text-white" style={{ '--delay': '200ms' } as CSSProperties}>
             Bar, comandas e <span className="text-sol-400">day use</span> na palma da mão.
           </h1>
@@ -83,9 +87,10 @@ function LoginForm() {
 
       <section className="flex items-center justify-center bg-white p-6">
         <form onSubmit={onSubmit} className="w-full max-w-sm space-y-5">
-          <div className="lg:hidden">
-            <div className="animate-bloom inline-block rounded-xl bg-mar-800 p-3" style={{ '--delay': '0ms' } as CSSProperties}>
-              <Logo />
+          <div className="flex justify-center lg:hidden">
+            <div className="animate-bloom relative" style={{ '--delay': '0ms' } as CSSProperties}>
+              <div className="absolute -inset-4 rounded-full bg-sol-300/40 blur-2xl" aria-hidden="true" />
+              <Emblem size={112} className="relative ring-4" />
             </div>
           </div>
           <div className="animate-rise" style={{ '--delay': '120ms' } as CSSProperties}>

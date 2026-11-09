@@ -6,23 +6,7 @@ import { useState, type ReactNode } from 'react';
 import type { Role } from '@/lib/types';
 import { useAuth } from '@/hooks/useAuth';
 import { IconBeer, IconSun } from '@/components/icons';
-
-export function Logo({ light = true }: { light?: boolean }) {
-  return (
-    <div className="flex items-center gap-3">
-      <svg viewBox="0 0 64 64" className="size-10 shrink-0" aria-hidden="true">
-        <rect width="64" height="64" rx="14" fill={light ? '#ffffff' : '#0b3a82'} />
-        <circle cx="32" cy="28" r="13" fill="#facc15" />
-        <path d="M4 44c9-6 18-6 28 0s19 6 28 0v16H4z" fill={light ? '#0b3a82' : '#ffffff'} />
-        <path d="M4 50c9-5 18-5 28 0s19 5 28 0" stroke="#facc15" strokeWidth="2.5" fill="none" />
-      </svg>
-      <div className="leading-tight">
-        <p className={`text-lg font-black tracking-tight ${light ? 'text-white' : 'text-mar-900'}`}>ARENA</p>
-        <p className="text-xs font-bold tracking-[0.25em] text-sol-400">SAQUAREMA</p>
-      </div>
-    </div>
-  );
-}
+import { Logo } from '@/components/Logo';
 
 const icon = (d: string) => (
   <svg viewBox="0 0 24 24" className="size-5 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
@@ -50,8 +34,11 @@ export function Shell({ children }: { children: ReactNode }) {
 
   const sidebar = (
     <nav className="flex h-full flex-col bg-mar-800 text-mar-100">
-      <div className="border-b border-mar-700 px-5 py-5">
-        <Logo />
+      <div className="relative overflow-hidden border-b border-mar-700 px-5 py-5">
+        <div className="absolute -top-10 -right-10 size-32 rounded-full bg-sol-400/15" aria-hidden="true" />
+        <div className="relative">
+          <Logo />
+        </div>
       </div>
       <ul className="flex-1 space-y-1 p-3">
         {items.map((i) => (
@@ -73,6 +60,13 @@ export function Shell({ children }: { children: ReactNode }) {
         ))}
       </ul>
       <div className="border-t border-mar-700 p-4">
+        <Link
+          href="/"
+          className="mb-4 flex items-center gap-2 rounded-lg bg-sol-400 px-3 py-2.5 text-sm font-extrabold text-mar-950 transition hover:bg-sol-300"
+        >
+          {icon('M15 19l-7-7 7-7')}
+          Voltar ao site
+        </Link>
         <p className="truncate text-sm font-semibold text-white">{user?.name}</p>
         <p className="mb-3 text-xs text-sol-400">{user?.role === 'ADMIN' ? 'Administrador' : 'Operador de caixa'}</p>
         <button
@@ -94,7 +88,7 @@ export function Shell({ children }: { children: ReactNode }) {
 
       {/* Mobile */}
       <header className="sticky top-0 z-30 flex items-center justify-between border-b-4 border-sol-400 bg-mar-800 px-4 py-3 lg:hidden">
-        <Logo />
+        <Logo size={36} />
         <button className="rounded-md p-2 text-white hover:bg-mar-700" onClick={() => setOpen(true)} aria-label="Abrir menu">
           {icon('M4 6h16M4 12h16M4 18h16')}
         </button>

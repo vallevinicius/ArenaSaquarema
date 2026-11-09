@@ -30,6 +30,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     },
     staleTime: 5 * 60_000,
+    // Sessão dura 8h (JWT_EXPIRES_IN): revalida a cada minuto para pedir login mesmo com a aba parada.
+    refetchInterval: 60_000,
     retry: false,
   });
 
