@@ -9,10 +9,12 @@ import { monthRange, presenceRate } from '../attendance/attendance.utils';
 import type { CreateStudent, ListStudents, UpdateStudent } from './students.schemas';
 
 // select explícito: passwordHash/tokenVersion nunca saem do service.
-const select = { id: true, name: true, email: true, active: true, mustChangePassword: true, createdAt: true } as const;
-type Row = { id: number; name: string; email: string; active: boolean; mustChangePassword: boolean; createdAt: Date };
+const select = { id: true, name: true, email: true, active: true, mustChangePassword: true, level: true, phone: true, createdAt: true } as const;
+type Row = { id: number; name: string; email: string; active: boolean; mustChangePassword: boolean; level?: string | null; phone?: string | null; createdAt: Date };
 const toDTO = (u: Row, daysAttended = 0, classDays = 0) => ({
   ...u,
+  level: (u.level ?? null) as 'INICIANTE_A' | 'INICIANTE_B' | 'INTERMEDIARIO' | 'AVANCADO' | null,
+  phone: u.phone ?? null,
   createdAt: u.createdAt.toISOString(),
   daysAttended,
   presenceRate: presenceRate(daysAttended, classDays),
@@ -23,6 +25,7 @@ export async function list(query: ListStudents) {
   const { from, to } = monthRange(month);
   const where = {
     role: 'ALUNO' as const,
+    ...(query.level && { level: query.level === 'NONE' ? null : query.level }),
     ...(query.q && { OR: [{ name: { contains: query.q } }, { email: { contains: query.q } }] }),
   };
   const [rows, total, classDays] = await Promise.all([
@@ -55,6 +58,8 @@ export async function create(input: CreateStudent) {
       email: input.email,
       role: 'ALUNO',
       mustChangePassword: true,
+      level: input.level ?? null,
+      phone: input.phone ?? null,
       passwordHash: await bcrypt.hash(DEFAULT_STUDENT_PASSWORD, BCRYPT_COST),
     },
     select,
@@ -73,6 +78,8 @@ export async function update(id: number, input: UpdateStudent) {
     data: {
       name: input.name,
       active: input.active,
+      level: input.level,
+      phone: input.phone,
       ...(input.resetPassword && {
         passwordHash: await bcrypt.hash(DEFAULT_STUDENT_PASSWORD, BCRYPT_COST),
         mustChangePassword: true,

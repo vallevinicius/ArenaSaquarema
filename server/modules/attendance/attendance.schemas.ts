@@ -28,5 +28,12 @@ export const CheckInDTO = registry.register('CheckIn', z.object({ id: z.number()
 
 export const DayCheckInDTO = registry.register(
   'DayCheckIn',
-  z.object({ id: z.number(), studentId: z.number(), studentName: z.string(), studentEmail: z.string(), createdAt: z.string() }),
+  z.object({
+    id: z.number(),
+    studentId: z.number(),
+    studentName: z.string(),
+    studentEmail: z.string(),
+    studentLevel: z.enum(['INICIANTE_A', 'INICIANTE_B', 'INTERMEDIARIO', 'AVANCADO']).nullable(),
+    createdAt: z.string(),
+  }),
 );

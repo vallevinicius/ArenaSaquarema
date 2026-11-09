@@ -60,10 +60,10 @@ describe('myAttendance', () => {
 describe('listByDay / remove', () => {
   it('lista os check-ins do dia mapeando para DTO (sem dados sensíveis)', async () => {
     prisma.checkIn.findMany.mockResolvedValue([
-      { id: 1, createdAt: new Date('2026-11-09T21:00:00Z'), user: { id: 3, name: 'Ana', email: 'ana@x.com' } },
+      { id: 1, createdAt: new Date('2026-11-09T21:00:00Z'), user: { id: 3, name: 'Ana', email: 'ana@x.com', level: 'INICIANTE_B' } },
     ] as never);
     expect(await service.listByDay('2026-11-09')).toEqual([
-      { id: 1, studentId: 3, studentName: 'Ana', studentEmail: 'ana@x.com', createdAt: '2026-11-09T21:00:00.000Z' },
+      { id: 1, studentId: 3, studentName: 'Ana', studentEmail: 'ana@x.com', studentLevel: 'INICIANTE_B', createdAt: '2026-11-09T21:00:00.000Z' },
     ]);
   });
 

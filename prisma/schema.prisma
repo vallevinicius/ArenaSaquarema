@@ -78,6 +78,9 @@ model User {
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 
+  // Só ALUNO: nível da turma (escolhido pelo admin) e telefone com DDD (só dígitos), usado nos avisos.
+  level              StudentLevel?
+  phone              String?             @db.VarChar(15)
   // Mensalidade (só ALUNO): plano contratado e histórico de pagamentos.
   membershipPlanId   Int?
   membershipPlan     MembershipPlan?     @relation(fields: [membershipPlanId], references: [id], onDelete: Restrict)
@@ -376,6 +379,13 @@ model MembershipPayment {
   @@index([userId, periodEnd])
   @@index([paidOn])
   @@map("membership_payments")
+}
+
+enum StudentLevel {
+  INICIANTE_A
+  INICIANTE_B
+  INTERMEDIARIO
+  AVANCADO
 }
 
 enum PartnerPlatform {

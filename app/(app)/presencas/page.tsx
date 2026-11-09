@@ -4,7 +4,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { api } from '@/lib/api-client';
 import { hour, todayLocal, ymdToBr } from '@/lib/format';
-import type { DayCheckIn } from '@/lib/types';
+import { STUDENT_LEVELS } from '@/lib/types';
+import type { DayCheckIn, StudentLevel } from '@/lib/types';
 import { useToast } from '@/components/Toast';
 import { Empty, ErrorBox, PageHeader, Spinner } from '@/components/ui';
 
@@ -12,6 +13,7 @@ export default function AttendancePage() {
   const toast = useToast();
   const qc = useQueryClient();
   const [date, setDate] = useState(todayLocal());
+  const [level, setLevel] = useState<StudentLevel | 'NONE' | ''>('');
   const list = useQuery({ queryKey: ['check-ins', date], queryFn: () => api.get<DayCheckIn[]>('/check-ins', { date }) });
 
   const remove = useMutation({
@@ -23,6 +25,9 @@ export default function AttendancePage() {
     },
     onError: () => toast('erro', 'Não foi possível remover'),
   });
+
+  const byLevel = (k: StudentLevel | 'NONE') => (list.data ?? []).filter((c) => (k === 'NONE' ? c.studentLevel === null : c.studentLevel === k)).length;
+  const shown = (list.data ?? []).filter((c) => !level || (level === 'NONE' ? c.studentLevel === null : c.studentLevel === level));
 
   return (
     <>
@@ -45,16 +50,30 @@ export default function AttendancePage() {
           <Empty>Nenhum check-in em {ymdToBr(date)}.</Empty>
         ) : (
           <>
-            <p className="px-4 pt-4 text-sm font-semibold text-mar-900">{list.data.length} aluno(s) em {ymdToBr(date)}</p>
+            <div className="flex flex-wrap items-center gap-2 px-4 pt-4" role="group" aria-label="Filtrar por nível">
+              <p className="mr-2 text-sm font-semibold text-mar-900">{list.data.length} aluno(s) em {ymdToBr(date)}</p>
+              {([['', 'Todos', list.data.length], ...(Object.keys(STUDENT_LEVELS) as StudentLevel[]).map((k) => [k, STUDENT_LEVELS[k].label, byLevel(k)]), ['NONE', 'Sem nível', byLevel('NONE')]] as [string, string, number][]).map(([k, label, n]) => (
+                <button
+                  key={k}
+                  type="button"
+                  aria-pressed={level === k}
+                  onClick={() => setLevel(k as StudentLevel | 'NONE' | '')}
+                  className={`rounded-full border px-3 py-1 text-sm font-semibold transition ${level === k ? 'border-mar-800 bg-mar-800 text-white' : 'border-white/70 bg-white/60 text-mar-800 hover:bg-white/90'}`}
+                >
+                  {label} · {n}
+                </button>
+              ))}
+            </div>
             <table className="table">
-              <thead><tr><th>Aluno</th><th>Horário</th><th /></tr></thead>
+              <thead><tr><th>Aluno</th><th>Nível</th><th>Horário</th><th /></tr></thead>
               <tbody>
-                {list.data.map((c) => (
+                {shown.map((c) => (
                   <tr key={c.id}>
                     <td>
                       <p className="font-semibold text-mar-900">{c.studentName}</p>
                       {c.studentName !== c.studentEmail && <p className="text-xs text-slate-500">{c.studentEmail}</p>}
                     </td>
+                    <td>{c.studentLevel ? <span className={`badge whitespace-nowrap ${STUDENT_LEVELS[c.studentLevel].badge}`}>{STUDENT_LEVELS[c.studentLevel].label}</span> : <span className="text-slate-400">—</span>}</td>
                     <td>{hour(c.createdAt)}</td>
                     <td className="text-right">
                       <button
