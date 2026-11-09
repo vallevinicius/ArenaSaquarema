@@ -183,3 +183,38 @@ export type Dashboard = {
 };
 
 export type Photo = { id: number; alt: string; url: string; width: number; height: number; createdAt: string };
+
+export type MembershipStatus = 'SEM_PLANO' | 'PARCEIRO' | 'SEM_PAGAMENTO' | 'EM_DIA' | 'VENCE_EM_BREVE' | 'VENCIDO';
+export const MEMBERSHIP_STATUS: Record<MembershipStatus, { label: string; badge: string }> = {
+  VENCIDO: { label: 'Vencida', badge: 'bg-red-100 text-red-700' },
+  SEM_PAGAMENTO: { label: 'Sem pagamento', badge: 'bg-sol-100 text-sol-700' },
+  VENCE_EM_BREVE: { label: 'Vence em breve', badge: 'bg-orange-100 text-orange-700' },
+  EM_DIA: { label: 'Em dia', badge: 'bg-emerald-100 text-emerald-700' },
+  PARCEIRO: { label: 'Parceiro', badge: 'bg-mar-100 text-mar-800' },
+  SEM_PLANO: { label: 'Sem plano', badge: 'bg-slate-200 text-slate-600' },
+};
+export type MembershipPlan = { id: number; name: string; price: string; chargeable: boolean; active: boolean; studentsCount: number };
+export type MembershipRow = {
+  id: number;
+  name: string;
+  email: string;
+  plan: { id: number; name: string; price: string; chargeable: boolean } | null;
+  status: MembershipStatus;
+  validUntil: string | null;
+  daysLeft: number | null;
+};
+export type MembershipOverview = Paginated<MembershipRow> & { summary: { counts: Partial<Record<MembershipStatus, number>>; receivedThisMonth: string } };
+export type MembershipPayment = {
+  id: number;
+  planName: string;
+  amount: string;
+  method: PaymentMethod;
+  paidOn: string;
+  periodStart: string;
+  periodEnd: string;
+  note: string | null;
+  registeredBy: string;
+  voided: boolean;
+  voidReason: string | null;
+};
+export type MyMembership = { planName: string | null; status: MembershipStatus; validUntil: string | null; daysLeft: number | null };

@@ -279,5 +279,8 @@ dialog::backdrop {
   }
   .table tbody td[data-label=''] {
     justify-content: flex-end;
+    flex-wrap: wrap;
+    white-space: normal !important; /* botões de ação quebram de linha em vez de sair da tela */
+    padding-top: 0.6rem;
   }
 }
