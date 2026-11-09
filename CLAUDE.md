@@ -56,6 +56,9 @@ App único Next.js 16 (App Router), front e API no mesmo processo/porta, no mesm
 ## Mensalidades
 Aluno tem um `MembershipPlan` (2x, 5x, Wellhub, TotalPass...; `chargeable=false` = parceiro, nunca atrasa). Cada `MembershipPayment` vale 30 dias corridos contando o dia de início (pagou 09/11 -> até 08/12); pagar ANTES de vencer soma depois do período atual, pagar depois de vencer recomeça no dia do pagamento (`memberships.utils.ts`, `periodFor`). A situação é sempre calculada (`statusOf`), nunca gravada. Pagamento não se apaga: estorno marca `voidedAt` e deixa de contar. Registrar pagamento trava a linha do aluno (`FOR UPDATE`) e recusa duplicata (mesmo aluno+valor+forma em 60s). Valor livre (permite desconto); ainda não existe isenção.
 
+## Check-ins de parceiros (Wellhub/TotalPass)
+`PartnerCheckIn` é separado de `CheckIn` (presença dos alunos): a contagem nunca se mistura com a taxa. Só ADMIN lê (`roles: ['ADMIN']`; `/parceiros` é área ADMIN, sem permissão atribuível). Não guarda CPF/e-mail/telefone. TotalPass chega por webhook público em `/api/partners/totalpass/webhook/<segredo>` (a TotalPass não assina): segredo no caminho (comparação em tempo constante), o check-in só conta depois de CONFIRMADO na TotalPass com o token (URL de confirmação montada da nossa config, nunca da do aviso: SSRF), duplicado por `(platform, externalId)`. Wellhub: só lançamento manual até haver documentação do Access Control (adapter vai em `server/modules/partners/`). Detalhes e configuração: `docs/parceiros.md`.
+
 ## Auth
 Perfis: `ADMIN` (acesso total; único que gerencia usuários e perfis), `OPERADOR` (equipe, com um `Profile` de permissões por área criado pelo admin) e `ALUNO`. Permissões: catálogo em `lib/permissions.ts` (front e back usam o mesmo); `route({ permissions: [...] })` aceita quem tem UMA delas, e `AuthUser.permissions` é lido do banco a cada request (mudar o perfil vale na hora). Rota nova da equipe SEMPRE declara `permissions`/`roles`. `route()` sem `roles` é **só da equipe**: aluno nunca entra por omissão; rotas de aluno declaram `roles: ['ALUNO']`.
 Aluno: admin cadastra só o e-mail (`POST /students`), senha padrão `mudar123` + `mustChangePassword`. Login com a senha padrão NÃO abre sessão: responde 202, envia código de 6 dígitos por e-mail (Resend, `server/lib/mail.ts`) e o front chama `POST /auth/password-reset`. Código: HMAC no banco, 10 min, 5 tentativas, uso único.
@@ -64,7 +67,7 @@ JWT HS256 em cookie `arena_token` (httpOnly, SameSite=Strict, Secure em prod, pa
 Rate limit do login em memória (por processo); IP só com `TRUST_PROXY>=1`.
 
 ## Variáveis (.env na raiz)
-`DATABASE_URL`, `DB_ALLOW_PUBLIC_KEY_RETRIEVAL` (só dev), `JWT_SECRET` (≥32), `JWT_EXPIRES_IN`, `SWAGGER_ENABLED`, `TRUST_PROXY`, `RESEND_API_KEY`, `MAIL_FROM`, `SEED_ADMIN_*`, `SITE_URL`, `CONTACT_WHATSAPP`, `CONTACT_ADDRESS`, `CONTACT_MAPS_URL`.
+`DATABASE_URL`, `DB_ALLOW_PUBLIC_KEY_RETRIEVAL` (só dev), `JWT_SECRET` (≥32), `JWT_EXPIRES_IN`, `SWAGGER_ENABLED`, `TRUST_PROXY`, `RESEND_API_KEY`, `MAIL_FROM`, `SEED_ADMIN_*`, `SITE_URL`, `CONTACT_WHATSAPP`, `CONTACT_ADDRESS`, `CONTACT_MAPS_URL`, `TOTALPASS_PARTNER_API_KEY`, `TOTALPASS_PLACE_API_KEY`, `TOTALPASS_API_URL`, `TOTALPASS_VALIDATE_URL`, `TOTALPASS_WEBHOOK_SECRET`.
 Site público (`app/(site)`): é `force-dynamic` porque lê `SITE_URL`/contatos do `.env` em runtime (o build roda sem `.env`). Os contatos vêm de `lib/contato.ts` (campo vazio = elemento não aparece). `robots.ts`/`sitemap.ts` listam só o site público; página nova do site entra no `sitemap.ts`.
 
 ## Operação
