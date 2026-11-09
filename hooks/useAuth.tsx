@@ -4,13 +4,15 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { createContext, useContext, useEffect, type ReactNode } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { ApiError, api, setUnauthorizedHandler } from '@/lib/api-client';
-import type { Me } from '@/lib/types';
+import type { Me, PasswordResetRequired } from '@/lib/types';
 import { Spinner } from '@/components/ui';
 
 type AuthCtx = {
   user: Me | null;
   loading: boolean;
-  login: (identifier: string, password: string) => Promise<Me>;
+  /** Devolve o usuário, ou `passwordResetRequired` quando o aluno ainda usa a senha provisória. */
+  login: (identifier: string, password: string) => Promise<Me | PasswordResetRequired>;
+  confirmPasswordReset: (identifier: string, code: string, newPassword: string) => Promise<Me>;
   logout: () => Promise<void>;
 };
 
@@ -50,7 +52,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     user: me.data ?? null,
     loading: me.isPending,
     login: async (identifier, password) => {
-      const user = await api.post<Me>('/auth/login', { identifier, password });
+      const res = await api.post<Me | PasswordResetRequired>('/auth/login', { identifier, password });
+      if ('passwordResetRequired' in res) return res; // sem cookie: falta o código do e-mail
+      qc.removeQueries({ predicate: (q) => q.queryKey[0] !== 'auth' });
+      qc.setQueryData(ME_KEY, res);
+      return res;
+    },
+    confirmPasswordReset: async (identifier, code, newPassword) => {
+      const user = await api.post<Me>('/auth/password-reset', { identifier, code, newPassword });
       qc.removeQueries({ predicate: (q) => q.queryKey[0] !== 'auth' });
       qc.setQueryData(ME_KEY, user);
       return user;
@@ -70,7 +79,10 @@ export function useAuth() {
   return ctx;
 }
 
-const ADMIN_ONLY = ['/dashboard', '/estoque', '/usuarios'];
+const ADMIN_ONLY = ['/dashboard', '/estoque', '/usuarios', '/alunos', '/presencas'];
+
+/** Para onde cada perfil vai depois de entrar. */
+export const homeFor = (role: Me['role']) => (role === 'ALUNO' ? '/aluno' : '/painel');
 
 /**
  * Guard das páginas. O proxy.ts já barra quem não tem cookie válido; aqui cobrimos
@@ -80,14 +92,31 @@ export function RequireAuth({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
-  const forbidden = !!user && user.role !== 'ADMIN' && ADMIN_ONLY.some((p) => pathname.startsWith(p));
+  const isStudent = user?.role === 'ALUNO';
+  const forbidden = !!user && !isStudent && user.role !== 'ADMIN' && ADMIN_ONLY.some((p) => pathname.startsWith(p));
 
   useEffect(() => {
     if (loading) return;
     if (!user) router.replace(`/login?from=${encodeURIComponent(pathname)}`);
+    else if (isStudent) router.replace('/aluno'); // aluno nunca vê as telas da equipe
     else if (forbidden) router.replace('/comandas');
-  }, [loading, user, forbidden, pathname, router]);
+  }, [loading, user, isStudent, forbidden, pathname, router]);
 
-  if (loading || !user || forbidden) return <Spinner />;
+  if (loading || !user || isStudent || forbidden) return <Spinner />;
+  return <>{children}</>;
+}
+
+/** Guard da área do aluno: só ALUNO; a equipe volta ao painel. */
+export function RequireStudent({ children }: { children: ReactNode }) {
+  const { user, loading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (loading) return;
+    if (!user) router.replace('/login?from=/aluno');
+    else if (user.role !== 'ALUNO') router.replace('/painel');
+  }, [loading, user, router]);
+
+  if (loading || !user || user.role !== 'ALUNO') return <Spinner />;
   return <>{children}</>;
 }

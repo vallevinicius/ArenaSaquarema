@@ -1,9 +1,35 @@
 // Espelha os DTOs do backend (ver /api/docs.json). Dinheiro chega como string "12.50".
-export type Role = 'ADMIN' | 'OPERADOR';
+export type Role = 'ADMIN' | 'OPERADOR' | 'ALUNO';
 export type Paginated<T> = { data: T[]; meta: { page: number; pageSize: number; total: number } };
 
 export type Me = { id: number; name: string; email: string; role: Role };
 export type User = Me & { active: boolean; createdAt: string };
+
+/** Login de aluno com senha provisória: sem sessão ainda, falta confirmar o código enviado por e-mail. */
+export type PasswordResetRequired = { passwordResetRequired: true; email: string };
+
+export type Student = {
+  id: number;
+  name: string;
+  email: string;
+  active: boolean;
+  mustChangePassword: boolean;
+  createdAt: string;
+  daysAttended: number;
+  presenceRate: number;
+};
+export type StudentList = Paginated<Student> & { month: string; classDays: number };
+
+export type MyAttendance = {
+  month: string;
+  daysAttended: number;
+  classDays: number;
+  presenceRate: number;
+  checkedInToday: boolean;
+  days: string[];
+};
+
+export type DayCheckIn = { id: number; studentId: number; studentName: string; studentEmail: string; createdAt: string };
 
 export type Customer = {
   id: number;

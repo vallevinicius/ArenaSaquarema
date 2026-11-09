@@ -13,7 +13,7 @@ type Out<S, K extends keyof Schemas> = S extends { [P in K]: z.ZodTypeAny } ? z.
 type Options<S extends Schemas, A extends boolean> = S & {
   /** false = rota pública. Padrão: exige sessão (deny by default). */
   auth?: A;
-  /** Restringe a papéis específicos (implica auth). */
+  /** Restringe a papéis específicos (implica auth). Padrão em rota autenticada: ADMIN e OPERADOR. */
   roles?: Role[];
   /** Status de sucesso quando o handler devolve dados (padrão 200). */
   status?: number;
@@ -26,6 +26,9 @@ type Ctx<S extends Schemas, A extends boolean> = {
   user: A extends false ? null : AuthUser;
   req: NextRequest;
 };
+
+/** Rotas sem `roles` explícito são só da equipe: o aluno (ALUNO) nunca entra por omissão. */
+const STAFF_ROLES: Role[] = ['ADMIN', 'OPERADOR'];
 
 type RouteContext = { params: Promise<Record<string, string | string[]>> };
 
@@ -47,7 +50,8 @@ export function route<S extends Schemas, A extends boolean = true>(
 
       const needsAuth = opts.auth !== false || !!opts.roles;
       const user = needsAuth ? await authenticate(req.cookies.get(COOKIE_NAME)?.value) : null;
-      if (user && opts.roles && !opts.roles.includes(user.role)) throw Forbidden();
+      const allowed = opts.roles ?? (needsAuth ? STAFF_ROLES : undefined);
+      if (user && allowed && !allowed.includes(user.role)) throw Forbidden();
 
       const rawParams = context?.params ? await context.params : {};
       const ctx = {

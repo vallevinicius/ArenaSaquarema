@@ -22,7 +22,9 @@ const NAV: Item[] = [
   { to: '/produtos', label: 'Bar / Produtos', icon: <IconBeer /> },
   { to: '/estoque', label: 'Estoque', icon: icon('M3 7l9-4 9 4-9 4zM3 7v10l9 4 9-4V7M12 11v10'), role: 'ADMIN' },
   { to: '/day-use', label: 'Day Use', icon: <IconSun /> },
-  { to: '/usuarios', label: 'Usuários', icon: icon('M12 15a7 7 0 00-7 6h14a7 7 0 00-7-6zM12 12a4 4 0 100-8 4 4 0 000 8z'), role: 'ADMIN' },
+  { to: '/alunos', label: 'Alunos', icon: icon('M17 20v-1a4 4 0 00-3-3.9M9 11a4 4 0 100-8 4 4 0 000 8zM3 20v-1a4 4 0 014-4h4a4 4 0 014 4v1M16 3.1a4 4 0 010 7.8'), role: 'ADMIN' },
+  { to: '/presencas', label: 'Presenças', icon: icon('M5 13l4 4L19 7'), role: 'ADMIN' },
+  { to: '/usuarios', label: 'Equipe', icon: icon('M12 15a7 7 0 00-7 6h14a7 7 0 00-7-6zM12 12a4 4 0 100-8 4 4 0 000 8z'), role: 'ADMIN' },
 ];
 
 export function Shell({ children }: { children: ReactNode }) {

@@ -9,6 +9,9 @@ const envSchema = z.object({
   JWT_EXPIRES_IN: z.string().regex(/^\d+[smhd]$/, 'Use formato como 8h, 30m').default('8h'),
   SWAGGER_ENABLED: z.stringbool().default(true),
   // Nº de proxies reversos à frente (nginx, load balancer). Define qual IP o rate limit enxerga.
+  // E-mail transacional (Resend). Sem chave: em dev o código aparece no log; em produção o envio falha.
+  RESEND_API_KEY: z.string().min(1).optional(),
+  MAIL_FROM: z.string().min(3).default('Arena Saquarema <onboarding@resend.dev>'),
   TRUST_PROXY: z.coerce.number().int().min(0).default(0),
 });
 

@@ -1,3 +1,3 @@
 import { route } from '@/server/lib/route';
 
-export const GET = route({}, async ({ user }) => user);
+export const GET = route({ roles: ['ADMIN', 'OPERADOR', 'ALUNO'] }, async ({ user }) => user);

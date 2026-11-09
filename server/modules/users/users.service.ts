@@ -2,15 +2,20 @@ import bcrypt from 'bcryptjs';
 import { BadRequest, NotFound } from '../../lib/errors';
 import { prisma } from '../../lib/prisma';
 import { BCRYPT_COST } from '../auth/auth.service';
+import type { Role } from '../../generated/prisma/enums';
 import type { CreateUser, ListUsers, UpdateUser } from './users.schemas';
 
 // select explícito: passwordHash/tokenVersion nunca saem do service.
 const publicSelect = { id: true, name: true, email: true, role: true, active: true, createdAt: true } as const;
-type PublicUser = { id: number; name: string; email: string; role: 'ADMIN' | 'OPERADOR'; active: boolean; createdAt: Date };
+type PublicUser = { id: number; name: string; email: string; role: Role; active: boolean; createdAt: Date };
 const toDTO = (u: PublicUser) => ({ ...u, createdAt: u.createdAt.toISOString() });
 
 export async function list(query: ListUsers) {
-  const where = query.q ? { OR: [{ name: { contains: query.q } }, { email: { contains: query.q } }] } : {};
+  // Alunos têm tela própria (/alunos): esta lista é só da equipe.
+  const where = {
+    role: { not: 'ALUNO' as const },
+    ...(query.q && { OR: [{ name: { contains: query.q } }, { email: { contains: query.q } }] }),
+  };
   const [data, total] = await prisma.$transaction([
     prisma.user.findMany({
       where,
@@ -42,8 +47,8 @@ export async function update(actorId: number, id: number, input: UpdateUser) {
   if (id === actorId && (input.active === false || input.role === 'OPERADOR')) {
     throw BadRequest('Você não pode desativar ou rebaixar o próprio usuário');
   }
-  const exists = await prisma.user.findUnique({ where: { id }, select: { id: true } });
-  if (!exists) throw NotFound('Usuário');
+  const exists = await prisma.user.findUnique({ where: { id }, select: { id: true, role: true } });
+  if (!exists || exists.role === 'ALUNO') throw NotFound('Usuário');
 
   // Mudança de papel/status/senha invalida JWTs já emitidos.
   const revokeSessions = input.active !== undefined || input.role !== undefined || input.password !== undefined;
