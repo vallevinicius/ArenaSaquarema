@@ -177,3 +177,5 @@ export type Dashboard = {
   dailyRevenue: { date: string; total: string }[];
   lowStock: { id: number; name: string; stock: number; minStock: number }[];
 };
+
+export type Photo = { id: number; alt: string; url: string; width: number; height: number; createdAt: string };

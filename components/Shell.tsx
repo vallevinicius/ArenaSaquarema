@@ -24,7 +24,8 @@ const NAV: Item[] = [
   { to: '/day-use', label: 'Day Use', icon: <IconSun /> },
   { to: '/alunos', label: 'Alunos', icon: icon('M17 20v-1a4 4 0 00-3-3.9M9 11a4 4 0 100-8 4 4 0 000 8zM3 20v-1a4 4 0 014-4h4a4 4 0 014 4v1M16 3.1a4 4 0 010 7.8'), role: 'ADMIN' },
   { to: '/presencas', label: 'Presenças', icon: icon('M5 13l4 4L19 7'), role: 'ADMIN' },
-  { to: '/usuarios', label: 'Equipe', icon: icon('M12 15a7 7 0 00-7 6h14a7 7 0 00-7-6zM12 12a4 4 0 100-8 4 4 0 000 8z'), role: 'ADMIN' },
+  { to: '/fotos', label: 'Fotos do site', icon: icon('M4 5h16v14H4zM4 15l4-4 4 4 3-3 5 5M9 9h.01'), role: 'ADMIN' },
+  { to: '/usuarios', label: 'Usuários', icon: icon('M12 15a7 7 0 00-7 6h14a7 7 0 00-7-6zM12 12a4 4 0 100-8 4 4 0 000 8z'), role: 'ADMIN' },
 ];
 
 export function Shell({ children }: { children: ReactNode }) {

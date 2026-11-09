@@ -79,7 +79,7 @@ export function useAuth() {
   return ctx;
 }
 
-const ADMIN_ONLY = ['/dashboard', '/estoque', '/usuarios', '/alunos', '/presencas'];
+const ADMIN_ONLY = ['/dashboard', '/estoque', '/usuarios', '/alunos', '/presencas', '/fotos'];
 
 /** Para onde cada perfil vai depois de entrar. */
 export const homeFor = (role: Me['role']) => (role === 'ALUNO' ? '/aluno' : '/painel');
