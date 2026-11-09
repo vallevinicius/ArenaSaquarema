@@ -1,11 +1,88 @@
-node_modules
+# Dependências
+node_modules/
+.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# Build / Next.js
 .next/
 out/
-.env
-.env*.local
-*.log
-.DS_Store
-*.tsbuildinfo
+build/
+dist/
 next-env.d.ts
-server/generated
+*.tsbuildinfo
+
+# Prisma (client gerado no postinstall)
+server/generated/
+
+# Variáveis de ambiente e segredos (só o .env.example é versionado)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
+
+# OpenAPI gerado
 openapi.json
+
+# Testes e cobertura
+coverage/
+.nyc_output/
+playwright-report/
+test-results/
+.vitest-cache/
+
+# Logs
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Caches
+.eslintcache
+.cache/
+.turbo/
+.parcel-cache/
+
+# Deploy
+.vercel
+
+# Dados locais (dump de banco, uploads)
+*.sql.gz
+*.dump
+!docker/mysql-init.sql
+
+# Sistema operacional
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Editores / IDEs (mantém só configs compartilhadas)
+.idea/
+*.swp
+*.swo
+*~
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/launch.json
+
+# Claude Code (configuração local do usuário)
+.claude/settings.local.json
+
+# Temporários
+*.tmp
+*.bak
+.tmp/
+tmp/
