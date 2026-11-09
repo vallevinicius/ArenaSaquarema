@@ -2,7 +2,11 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Degraus, d } from '@/components/site';
 
-export const metadata: Metadata = { title: 'Horários das aulas · Arena Saquarema' };
+export const metadata: Metadata = {
+  title: 'Horários das aulas',
+  description: 'Quatro turmas por nível, de Iniciante A a Avançado, das 18h às 22h.',
+  alternates: { canonical: '/horarios' },
+};
 
 export default function HorariosPage() {
   return (

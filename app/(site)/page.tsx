@@ -2,11 +2,32 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Emblem } from '@/components/Logo';
 import * as photosService from '@/server/modules/photos/photos.service';
+import type { Metadata } from 'next';
+import { SITE_NAME, address, siteUrl, whatsappDigits } from '@/lib/contato';
 import { Degraus, INSTAGRAM, IconInstagram, PARCEIROS, PLANOS, Quadra, d } from '@/components/site';
 
 // A galeria vem do banco (fotos enviadas pelo admin): a página é renderizada a cada acesso,
 // o que também mantém o `next build` sem depender de banco/.env.
 export const dynamic = 'force-dynamic';
+
+export const metadata: Metadata = { alternates: { canonical: '/' } };
+
+// Dados estruturados: ajudam o Google a mostrar a arena como local esportivo. Campos sem valor no .env ficam de fora.
+function jsonLd() {
+  const tel = whatsappDigits();
+  const end = address();
+  return JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'SportsActivityLocation',
+    name: SITE_NAME,
+    description: 'Aulas de futevôlei em Saquarema, RJ, em turmas por nível.',
+    url: siteUrl(),
+    sameAs: [INSTAGRAM.url],
+    openingHours: 'Mo-Su 18:00-22:00',
+    ...(tel && { telephone: `+${tel}` }),
+    ...(end && { address: { '@type': 'PostalAddress', streetAddress: end, addressLocality: 'Saquarema', addressRegion: 'RJ', addressCountry: 'BR' } }),
+  }).replace(/</g, '\\u003c');
+}
 
 async function loadPhotos() {
   try {
@@ -20,6 +41,7 @@ export default async function HomePage() {
   const fotos = await loadPhotos();
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd() }} />
       {/* Hero: a quadra. O título acompanha o arco da bola e ela cruza a rede ao carregar. */}
       <section className="relative overflow-hidden overflow-x-clip bg-areia-100 pt-28 lg:pt-32">
         <div className="animate-bloom absolute -top-24 -right-24 size-80 rounded-full bg-sol-400 sm:size-[30rem]" style={d(0)} aria-hidden="true" />
