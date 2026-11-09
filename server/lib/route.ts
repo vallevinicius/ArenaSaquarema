@@ -3,6 +3,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { ZodError, z } from 'zod';
 import { Prisma } from '../generated/prisma/client';
 import type { Role } from '../generated/prisma/enums';
+import { hasAny, type Permission } from '../../lib/permissions';
 import { COOKIE_NAME, authenticate, type AuthUser } from './auth';
 import { AppError, Forbidden } from './errors';
 import { logger } from './logger';
@@ -15,6 +16,8 @@ type Options<S extends Schemas, A extends boolean> = S & {
   auth?: A;
   /** Restringe a papéis específicos (implica auth). Padrão em rota autenticada: ADMIN e OPERADOR. */
   roles?: Role[];
+  /** Basta ter UMA destas permissões (ADMIN sempre passa). Aluno nunca passa: só a equipe tem perfil. */
+  permissions?: Permission[];
   /** Status de sucesso quando o handler devolve dados (padrão 200). */
   status?: number;
 };
@@ -48,10 +51,11 @@ export function route<S extends Schemas, A extends boolean = true>(
     try {
       if (MUTATING.has(req.method)) assertSameOrigin(req);
 
-      const needsAuth = opts.auth !== false || !!opts.roles;
+      const needsAuth = opts.auth !== false || !!opts.roles || !!opts.permissions;
       const user = needsAuth ? await authenticate(req.cookies.get(COOKIE_NAME)?.value) : null;
       const allowed = opts.roles ?? (needsAuth ? STAFF_ROLES : undefined);
       if (user && allowed && !allowed.includes(user.role)) throw Forbidden();
+      if (user && opts.permissions && !hasAny(user, opts.permissions)) throw Forbidden();
 
       const rawParams = context?.params ? await context.params : {};
       const ctx = {

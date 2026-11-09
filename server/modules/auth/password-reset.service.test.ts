@@ -126,7 +126,7 @@ describe('confirm', () => {
     expect(data.mustChangePassword).toBe(false);
     expect(data.tokenVersion).toEqual({ increment: 1 });
     expect(res.token).toEqual(expect.any(String));
-    expect(res.user).toEqual({ id: 3, name: 'ana@x.com', email: 'ana@x.com', role: 'ALUNO' });
+    expect(res.user).toEqual({ id: 3, name: 'ana@x.com', email: 'ana@x.com', role: 'ALUNO', permissions: [] });
     expect(JSON.stringify(res)).not.toContain('passwordHash');
   });
 

@@ -19,10 +19,20 @@ beforeEach(() => {
 });
 
 describe('login', () => {
+  it('equipe: devolve as permissões do perfil (ADMIN: todas)', async () => {
+    prisma.user.findFirst.mockResolvedValue(withPassword('senhaForte123', { role: 'OPERADOR', profile: { permissions: ['COMANDAS', 'HACK'] } }));
+    const res = await login('ana@x.com', 'senhaForte123');
+    expect((res as { user: { permissions: string[] } }).user.permissions).toEqual(['COMANDAS']);
+
+    prisma.user.findFirst.mockResolvedValue(withPassword('senhaForte123', { role: 'ADMIN', profile: null }));
+    const adm = await login('ana@x.com', 'senhaForte123');
+    expect((adm as { user: { permissions: string[] } }).user.permissions.length).toBeGreaterThan(5);
+  });
+
   it('usuário comum: devolve token e usuário', async () => {
     prisma.user.findFirst.mockResolvedValue(withPassword('senhaForte123'));
     const res = await login('ana@x.com', 'senhaForte123');
-    expect(res).toMatchObject({ user: { id: 3, role: 'ALUNO' }, token: expect.any(String) });
+    expect(res).toMatchObject({ user: { id: 3, role: 'ALUNO', permissions: [] }, token: expect.any(String) });
     expect(sendCode).not.toHaveBeenCalled();
   });
 

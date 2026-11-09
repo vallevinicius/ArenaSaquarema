@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs';
 import { BadRequest, Unauthorized } from '../../lib/errors';
 import { prisma } from '../../lib/prisma';
 import { signToken } from '../../lib/auth';
+import { resolvePermissions } from '../../../lib/permissions';
 import { maskEmail, sendCode } from './password-reset.service';
 
 export const BCRYPT_COST = 12;
@@ -12,7 +13,10 @@ const DUMMY_HASH = bcrypt.hashSync('dummy-password-for-timing', BCRYPT_COST);
 
 export async function login(identifier: string, password: string) {
   // Aceita e-mail (case-insensitive, como é salvo) ou nome do usuário (case-sensitive).
-  const user = await prisma.user.findFirst({ where: { OR: [{ email: identifier.toLowerCase() }, { name: identifier }] } });
+  const user = await prisma.user.findFirst({
+    where: { OR: [{ email: identifier.toLowerCase() }, { name: identifier }] },
+    include: { profile: { select: { permissions: true } } },
+  });
   const ok = await bcrypt.compare(password, user?.passwordHash ?? DUMMY_HASH);
   // Mesma mensagem para "não existe", "senha errada" e "inativo".
   if (!user || !ok || !user.active) throw Unauthorized('Usuário ou senha inválidos');
@@ -26,7 +30,7 @@ export async function login(identifier: string, password: string) {
 
   return {
     token: signToken(user.id, user.tokenVersion),
-    user: { id: user.id, name: user.name, email: user.email, role: user.role },
+    user: { id: user.id, name: user.name, email: user.email, role: user.role, permissions: resolvePermissions(user.role, user.profile?.permissions) },
   };
 }
 

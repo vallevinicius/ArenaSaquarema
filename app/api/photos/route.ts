@@ -3,10 +3,10 @@ import { route } from '@/server/lib/route';
 import { MAX_UPLOAD_BYTES } from '@/server/modules/photos/photos.utils';
 import * as service from '@/server/modules/photos/photos.service';
 
-export const GET = route({ roles: ['ADMIN'] }, () => service.list());
+export const GET = route({ permissions: ['FOTOS'] }, () => service.list());
 
 // multipart/form-data: o route() só lê JSON quando há `body`, então aqui lemos o formulário direto.
-export const POST = route({ roles: ['ADMIN'], status: 201 }, async ({ req, user }) => {
+export const POST = route({ permissions: ['FOTOS'], status: 201 }, async ({ req, user }) => {
   // Recusa antes de ler o corpo inteiro (o limite por foto é conferido de novo no service).
   if (Number(req.headers.get('content-length') ?? 0) > MAX_UPLOAD_BYTES + 64 * 1024) {
     throw new AppError(413, 'PAYLOAD_TOO_LARGE', 'A foto passa de 10 MB');

@@ -15,9 +15,9 @@ vi.mock('./prisma', () => ({ prisma: {} }));
 
 const { route } = await import('./route');
 
-function as(role: Role | null) {
+function as(role: Role | null, permissions: string[] = []) {
   session = role
-    ? async () => ({ id: 1, name: 'x', email: 'x@x.com', role })
+    ? async () => ({ id: 1, name: 'x', email: 'x@x.com', role, permissions })
     : async () => {
         throw Unauthorized('Sessão inválida');
       };
@@ -68,5 +68,46 @@ describe('RBAC do route()', () => {
     const h = route({ auth: false }, async () => ({ ok: true }));
     expect((await call(h)).status).toBe(200);
     expect(authCalls).toBe(0);
+  });
+});
+
+describe('permissões por perfil no route()', () => {
+  const only = (...p: ('COMANDAS' | 'ESTOQUE' | 'CLIENTES')[]) => route({ permissions: p }, async () => ({ ok: true }));
+
+  it('equipe com a permissão passa; sem ela, 403', async () => {
+    as('OPERADOR', ['COMANDAS']);
+    expect((await call(only('COMANDAS'))).status).toBe(200);
+    expect((await call(only('ESTOQUE'))).status).toBe(403);
+  });
+
+  it('basta UMA das permissões listadas', async () => {
+    as('OPERADOR', ['CLIENTES']);
+    expect((await call(only('COMANDAS', 'CLIENTES'))).status).toBe(200);
+  });
+
+  it('ADMIN passa em qualquer permissão', async () => {
+    as('ADMIN', []);
+    expect((await call(only('ESTOQUE'))).status).toBe(200);
+  });
+
+  it('ALUNO nunca passa, mesmo com "permissões" no objeto', async () => {
+    as('ALUNO', ['COMANDAS']);
+    expect((await call(only('COMANDAS'))).status).toBe(403);
+  });
+
+  it('equipe com perfil vazio é barrada em tudo', async () => {
+    as('OPERADOR', []);
+    expect((await call(only('COMANDAS'))).status).toBe(403);
+  });
+
+  it('sem sessão: 401 (a permissão implica autenticação)', async () => {
+    as(null);
+    expect((await call(only('COMANDAS'))).status).toBe(401);
+  });
+
+  it('roles ["ADMIN"] continua barrando equipe, mesmo com todas as permissões (usuários/perfis)', async () => {
+    const h = route({ roles: ['ADMIN'] }, async () => ({ ok: true }));
+    as('OPERADOR', ['COMANDAS', 'ESTOQUE', 'CLIENTES']);
+    expect((await call(h)).status).toBe(403);
   });
 });
